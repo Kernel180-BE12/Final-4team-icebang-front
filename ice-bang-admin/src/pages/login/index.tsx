@@ -6,7 +6,7 @@ export const Login = () => {
       type="login"
       title={<img src={"../../../public/favicon.png"} alt="Soft labs logo" style={{ height: 64 }} />}
       formProps={{
-        initialValues: { email: "demo@refine.dev", password: "demodemo" },
+        initialValues: { email: "admin@icebang.site", password: "qwer1234!A" },
       }}
     />
   );
