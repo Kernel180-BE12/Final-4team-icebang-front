@@ -34,6 +34,8 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
+// 워크플로우 관련 컴포넌트 import
+import { WorkflowRunList } from "./pages/workflows/runs";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
@@ -72,6 +74,16 @@ function App() {
                       canDelete: true,
                     },
                   },
+                  // 워크플로우 실행 리소스 추가
+                  {
+                    name: "workflow-runs",
+                    list: "/workflow-runs",
+                    show: "/workflow-runs/show/:id",
+                    meta: {
+                      label: "워크플로우 실행",
+                      // icon: "🔄", // 또는 실제 아이콘 컴포넌트
+                    },
+                  },
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -98,7 +110,7 @@ function App() {
                   >
                     <Route
                       index
-                      element={<NavigateToResource resource="blog_posts" />}
+                      element={<NavigateToResource resource="workflow-runs" />}
                     />
                     <Route path="/blog-posts">
                       <Route index element={<BlogPostList />} />
@@ -111,6 +123,12 @@ function App() {
                       <Route path="create" element={<CategoryCreate />} />
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
+                    </Route>
+                    {/* 워크플로우 실행 라우트 추가 */}
+                    <Route path="/workflow-runs">
+                      <Route index element={<WorkflowRunList />} />
+                      {/* 필요시 상세 페이지 추가 */}
+                      {/* <Route path="show/:id" element={<WorkflowRunShow />} /> */}
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
