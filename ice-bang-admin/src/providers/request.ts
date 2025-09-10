@@ -1,0 +1,17 @@
+export type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  message: string;
+  status: string;
+};
+
+export async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options);
+  const result: ApiResponse<T> = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message ?? "API Error");
+  }
+
+  return result.data;
+}

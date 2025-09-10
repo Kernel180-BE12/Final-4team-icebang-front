@@ -19,7 +19,7 @@ import routerBindings, {
 import dataProvider from "@refinedev/simple-rest";
 import { App as AntdApp } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
-import { authProvider } from "./authProvider";
+import { authProvider } from "./providers/authProvider";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import {
