@@ -2,7 +2,7 @@
 import { DataProvider, BaseRecord, GetListResponse } from "@refinedev/core";
 import { request } from "./request";
 
-const API_URL = "http://localhost:8080";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const organizationsProvider: Partial<DataProvider> = {
   getList: async <TData extends BaseRecord = BaseRecord>(): Promise<GetListResponse<TData>> => {
