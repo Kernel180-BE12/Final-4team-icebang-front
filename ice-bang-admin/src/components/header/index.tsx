@@ -7,9 +7,12 @@ import {
   Switch,
   theme,
   Typography,
+  Button,
+  notification,
 } from "antd";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
+import { WifiOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -26,6 +29,37 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   const { token } = useToken();
   const { data: user } = useGetIdentity<IUser>();
   const { mode, setMode } = useContext(ColorModeContext);
+  const [pingLoading, setPingLoading] = useState(false);
+
+  const handlePing = async () => {
+    setPingLoading(true);
+    
+    try {
+      const startTime = Date.now();
+      const response = await fetch("http://localhost:8080/ping");
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      if (response.ok) {
+        notification.success({
+          message: "서버 연결 성공",
+          description: `응답 시간: ${responseTime}ms`,
+          duration: 3,
+        });
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      notification.error({
+        message: "서버 연결 실패",
+        description: `오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        duration: 3,
+      });
+      console.log(error);
+    } finally {
+      setPingLoading(false);
+    }
+  };
 
   const headerStyles: React.CSSProperties = {
     backgroundColor: token.colorBgElevated,
@@ -45,6 +79,15 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
+        <Button
+          type="default"
+          icon={<WifiOutlined />}
+          onClick={handlePing}
+          loading={pingLoading}
+          size="small"
+        >
+          Ping
+        </Button>
         <Switch
           checkedChildren="🌛"
           unCheckedChildren="🔆"
