@@ -1,10 +1,9 @@
 import type { AuthProvider } from "@refinedev/core";
-
-const API_URL = "http://localhost:8080/v0";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/v0/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // 세션 유지
@@ -31,7 +30,7 @@ export const authProvider: AuthProvider = {
   },
 
   logout: async () => {
-    await fetch(`${API_URL}/auth/logout`, {
+    await fetch(`${API_URL}/v0/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
@@ -43,7 +42,7 @@ export const authProvider: AuthProvider = {
   },
 
   check: async () => {
-    const response = await fetch(`${API_URL}/auth/check-session`, {
+    const response = await fetch(`${API_URL}/v0/auth/check-session`, {
       credentials: "include",
     });
     const result = await response.json();
@@ -55,7 +54,7 @@ export const authProvider: AuthProvider = {
   },
 
   getPermissions: async () => {
-    const response = await fetch(`${API_URL}/auth/permissions`, {
+    const response = await fetch(`${API_URL}/v0/auth/permissions`, {
       credentials: "include",
     });
     const result = await response.json();
@@ -63,7 +62,7 @@ export const authProvider: AuthProvider = {
   },
 
   getIdentity: async () => {
-    const response = await fetch(`${API_URL}/users/me`, {
+    const response = await fetch(`${API_URL}/v0/users/me`, {
       credentials: "include",
     });
     const result = await response.json();

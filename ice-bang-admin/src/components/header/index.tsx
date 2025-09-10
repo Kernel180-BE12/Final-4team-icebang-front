@@ -16,6 +16,7 @@ import { WifiOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 const { useToken } = theme;
+const API_URL = import.meta.env.VITE_API_URL;
 
 type IUser = {
   id: number;
@@ -36,7 +37,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
     
     try {
       const startTime = Date.now();
-      const response = await fetch("http://localhost:8080/ping");
+      const response = await fetch(`${API_URL}/ping`);
       const endTime = Date.now();
       const responseTime = endTime - startTime;
       
