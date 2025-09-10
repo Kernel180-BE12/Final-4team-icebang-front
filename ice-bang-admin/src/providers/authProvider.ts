@@ -48,11 +48,10 @@ export const authProvider: AuthProvider = {
     });
     const result = await response.json();
 
-    if (result.authenticated) {
-      return { authenticated: true };
-    }
-
-    return { authenticated: false, redirectTo: "/login" };
+  if (result.success && result.data === true) {
+    return { authenticated: true };
+  }
+  return { authenticated: false, redirectTo: "/login" };
   },
 
   getPermissions: async () => {
@@ -64,7 +63,7 @@ export const authProvider: AuthProvider = {
   },
 
   getIdentity: async () => {
-    const response = await fetch(`${API_URL}/auth/me`, {
+    const response = await fetch(`${API_URL}/users/me`, {
       credentials: "include",
     });
     const result = await response.json();
