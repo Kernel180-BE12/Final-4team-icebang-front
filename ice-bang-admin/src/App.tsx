@@ -34,6 +34,12 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
+import {
+  UserCreate,
+  UserEdit,
+  UserList,
+  UserShow,
+} from "./pages/user";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
@@ -70,6 +76,17 @@ function App() {
                     show: "/categories/show/:id",
                     meta: {
                       canDelete: true,
+                    },
+                  },
+                  {
+                    name: "users",
+                    list: "/users",
+                    create: "/users/create",
+                    edit: "/users/edit/:id",
+                    show: "/users/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "사용자 관리",
                     },
                   },
                 ]}
@@ -111,6 +128,12 @@ function App() {
                       <Route path="create" element={<CategoryCreate />} />
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
+                    </Route>
+                    <Route path="/users">
+                      <Route index element={<UserList />} />
+                      <Route path="create" element={<UserCreate />} />
+                      <Route path="edit/:id" element={<UserEdit />} />
+                      <Route path="show/:id" element={<UserShow />} />
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
