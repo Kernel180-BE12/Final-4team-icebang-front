@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "1",
+        "title": "CEO",
+        "organization_id": "1"
+      },
+      {
+        "id": "2",
+        "title": "CTO",
+        "organization_id": "1"
+      },
+      {
+        "id": "3",
+        "title": "팀장",
+        "organization_id": "1"
+      },
+      {
+        "id": "4", 
+        "title": "시니어",
+        "organization_id": "1"
+      },
+      {
+        "id": "5",
+        "title": "주니어",
+        "organization_id": "1"
+      },
+      {
+        "id": "6",
+        "title": "인턴",
+        "organization_id": "1"
+      }
+    ]
+  },
+  "message": "직위 목록 조회 성공",
+  "status": "OK"
+}

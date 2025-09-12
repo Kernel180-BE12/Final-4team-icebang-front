@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "1",
+        "name": "icebang",
+        "domain_name": "icebang.site"
+      },
+      {
+        "id": "2", 
+        "name": "테크이노베이션",
+        "domain_name": "techinnovation.co.kr"
+      },
+      {
+        "id": "3",
+        "name": "디지털솔루션", 
+        "domain_name": "digitalsolution.com"
+      }
+    ]
+  },
+  "message": "조직 목록 조회 성공",
+  "status": "OK"
+}
