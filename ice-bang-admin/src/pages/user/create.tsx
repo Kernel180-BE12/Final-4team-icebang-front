@@ -222,37 +222,18 @@ export const UserCreate = () => {
             name="password"
             rules={[
               {
-                required: true,
+                required: false,
                 message: "비밀번호를 입력해주세요.",
               },
               {
                 min: 8,
-                message: "비밀번호는 최소 8자 이상이어야 합니다.",
+                message: "임시 비밀번호로 설정됩니다.",
               },
             ]}
           >
-            <Input.Password placeholder="비밀번호를 입력하세요" />
-          </Form.Item>
-
-          <Form.Item
-            label="상태"
-            name="status"
-            initialValue="PENDING"
-            rules={[
-              {
-                required: true,
-                message: "상태를 선택해주세요.",
-              },
-            ]}
-          >
-            <Select
-              placeholder="상태를 선택하세요"
-              style={{ width: 200 }}
-              options={[
-                { value: "ACTIVE", label: "활성" },
-                { value: "INACTIVE", label: "비활성" },
-                { value: "PENDING", label: "승인대기" },
-              ]}
+            <Input.Password 
+              placeholder="시스템에서 임시 비밀번호가 자동 생성됩니다" 
+              disabled={true}
             />
           </Form.Item>
         </Card>

@@ -71,21 +71,47 @@ export const UserEdit = () => {
     { value: "COPYWRITER", label: "카피라이터" },
   ];
 
-  // 기존 역할들을 state에 설정
+  // 기존 역할들을 state에 설정 및 폼 값 초기화
   useEffect(() => {
-    if (userData?.user_roles) {
+    if (userData?.user_roles && userData.user_roles.length > 0) {
+      // Mock 데이터에서 role_id 추출 (숫자 형태)
       const roleIds = userData.user_roles.map((ur: any) => ur.role_id);
-      setSelectedRoles(roleIds);
+      console.log('기존 역할 ID들:', roleIds);
+      
+      // role_id를 실제 역할명으로 매핑
+      const roleMapping: {[key: string]: string} = {
+        "1": "SUPER_ADMIN",
+        "2": "ORG_ADMIN", 
+        "3": "AI_ENGINEER",
+        "4": "DATA_SCIENTIST",
+        "5": "CONTENT_MANAGER",
+        "6": "WORKFLOW_ADMIN",
+        "7": "USER"
+      };
+      
+      const roleValues = roleIds.map((roleId: string) => roleMapping[roleId]).filter(Boolean);
+      console.log('매핑된 역할 값들:', roleValues);
+      
+      setSelectedRoles(roleValues);
+      
+      // 폼에도 값 설정
+      setTimeout(() => {
+        formProps.form?.setFieldsValue({ roles: roleValues });
+      }, 100);
     }
-  }, [userData]);
+  }, [userData, formProps.form]);
 
   // 역할 변경 핸들러
   const handleRoleChange = (values: string[]) => {
+    console.log('역할 변경:', values);
     setSelectedRoles(values);
+    // 폼 필드에 값 설정
+    formProps.form?.setFieldsValue({ roles: values });
   };
 
   // 역할 제거 핸들러
   const handleRoleRemove = (roleValue: string) => {
+    console.log('역할 제거:', roleValue);
     const newRoles = selectedRoles.filter(role => role !== roleValue);
     setSelectedRoles(newRoles);
     formProps.form?.setFieldsValue({ roles: newRoles });
@@ -248,7 +274,7 @@ export const UserEdit = () => {
                     position: 'absolute',
                     top: '6px',
                     left: '11px',
-                    color: '#000',
+                    color: '#999',
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
@@ -257,10 +283,18 @@ export const UserEdit = () => {
                 </div>
               )}
             </div>
+          </Form.Item>
 
-            {/* 선택된 역할 표시 영역 */}
-            {selectedRoles.length > 0 && (
-              <div style={{ marginTop: 8 }}>
+          {/* 현재 부여된 역할 표시 영역 */}
+          {selectedRoles.length > 0 && (
+            <Form.Item label="현재 부여된 역할">
+              <div style={{ 
+                marginTop: -8, 
+                padding: 12, 
+                backgroundColor: '#f8f9fa', 
+                borderRadius: 6,
+                border: '1px solid #e9ecef'
+              }}>
                 <Space wrap>
                   {selectedRoles.map((roleValue) => {
                     const roleOption = roleOptions.find((option: any) => option.value === roleValue);
@@ -269,15 +303,27 @@ export const UserEdit = () => {
                         key={roleValue}
                         closable
                         onClose={() => handleRoleRemove(roleValue)}
+                        color="blue"
+                        style={{ margin: 2 }}
                       >
                         {roleOption.label}
                       </Tag>
                     ) : null;
                   })}
                 </Space>
+                {selectedRoles.length > 0 && (
+                  <div style={{ 
+                    marginTop: 8, 
+                    fontSize: 12, 
+                    color: '#666',
+                    fontStyle: 'italic'
+                  }}>
+                    총 {selectedRoles.length}개의 역할이 부여되어 있습니다. 태그를 클릭하여 제거할 수 있습니다.
+                  </div>
+                )}
               </div>
-            )}
-          </Form.Item>
+            </Form.Item>
+          )}
         </Card>
       </Form>
     </Edit>
