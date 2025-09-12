@@ -184,7 +184,7 @@ function App() {
                     />
                   </Route>
                   <Route path="/workflows-history">
-                     <Route index element={<SchedulerHistoryList />} />
+                     <Route index element={<WorkflowsHistoryList />} />
                       {/* <Route path="create" element={<CategoryCreate />} />
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} /> */}
