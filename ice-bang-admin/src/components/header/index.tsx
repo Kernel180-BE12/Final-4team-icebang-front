@@ -13,6 +13,7 @@ import {
 import React, { useContext, useState } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 import { WifiOutlined } from "@ant-design/icons";
+import { useGo } from "@refinedev/core";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -31,6 +32,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
   const { data: user } = useGetIdentity<IUser>();
   const { mode, setMode } = useContext(ColorModeContext);
   const [pingLoading, setPingLoading] = useState(false);
+  const go = useGo();
 
   const handlePing = async () => {
     setPingLoading(true);
@@ -96,7 +98,10 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
           defaultChecked={mode === "dark"}
         />
         <Space style={{ marginLeft: "8px" }} size="middle">
-          {user?.name && <Text strong>{user.name}</Text>}
+          {user?.name && 
+            <Button onClick={() => go({ to: "/my-page" })}>
+              {user.name}
+            </Button>}
           {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}
         </Space>
       </Space>
