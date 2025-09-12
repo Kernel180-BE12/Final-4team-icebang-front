@@ -46,6 +46,7 @@ import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import {TeamOutlined} from "@ant-design/icons";
 import { SchedulerHistoryList } from "./pages/scheduler-history";
+import { MyPage } from "./pages/my-page";
 
 function App() {
   return (
@@ -127,6 +128,7 @@ function App() {
                       </Authenticated>
                     }
                   >
+                    <Route path="/my-page" element={<MyPage />} />
                     <Route
                       index
                       element={<NavigateToResource resource="blog_posts" />}
