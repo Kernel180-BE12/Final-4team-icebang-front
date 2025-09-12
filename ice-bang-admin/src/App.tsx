@@ -44,6 +44,7 @@ import {
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+import {TeamOutlined} from "@ant-design/icons";
 import { WorkflowsHistoryList } from "./pages/workflows-history";
 import { WorkflowsHistoryShow } from "./pages/workflows-history";
 import { MyPage } from "./pages/my-page";
