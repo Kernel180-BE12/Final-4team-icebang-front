@@ -1,0 +1,332 @@
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "1",
+        "name": "김아이스",
+        "email": "ice.kim@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-15T09:00:00Z",
+        "updated_at": "2024-01-15T09:00:00Z",
+        "user_organizations": [
+          {
+            "id": "1",
+            "user_id": "1",
+            "organization_id": "1",
+            "department_id": "6",
+            "position_id": "1",
+            "employee_number": "PLN25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "1",
+            "user_id": "1",
+            "role_id": "2"
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "name": "박방방",
+        "email": "bang.park@icebang.site", 
+        "status": "ACTIVE",
+        "created_at": "2024-01-16T10:30:00Z",
+        "updated_at": "2024-01-16T10:30:00Z",
+        "user_organizations": [
+          {
+            "id": "2",
+            "user_id": "2",
+            "organization_id": "1",
+            "department_id": "1",
+            "position_id": "2",
+            "employee_number": "AI25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "2",
+            "user_id": "2",
+            "role_id": "3"
+          },
+          {
+            "id": "3",
+            "user_id": "2", 
+            "role_id": "6"
+          }
+        ]
+      },
+      {
+        "id": "3",
+        "name": "이트렌드",
+        "email": "trend.lee@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-17T14:20:00Z",
+        "updated_at": "2024-01-17T14:20:00Z",
+        "user_organizations": [
+          {
+            "id": "3",
+            "user_id": "3",
+            "organization_id": "1",
+            "department_id": "2",
+            "position_id": "3",
+            "employee_number": "DAT25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "4",
+            "user_id": "3",
+            "role_id": "4"
+          }
+        ]
+      },
+      {
+        "id": "4",
+        "name": "정바이럴",
+        "email": "viral.jung@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-18T11:45:00Z",
+        "updated_at": "2024-01-20T16:30:00Z",
+        "user_organizations": [
+          {
+            "id": "4",
+            "user_id": "4",
+            "organization_id": "1",
+            "department_id": "3",
+            "position_id": "3",
+            "employee_number": "CON25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "5",
+            "user_id": "4",
+            "role_id": "5"
+          }
+        ]
+      },
+      {
+        "id": "5",
+        "name": "최콘텐츠",
+        "email": "content.choi@icebang.site",
+        "status": "LOCKED",
+        "created_at": "2024-01-19T13:15:00Z",
+        "updated_at": "2024-01-19T13:15:00Z",
+        "user_organizations": [
+          {
+            "id": "5",
+            "user_id": "5",
+            "organization_id": "1",
+            "department_id": "3",
+            "position_id": "4",
+            "employee_number": "CON25002",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "6",
+            "user_id": "5",
+            "role_id": "7"
+          }
+        ]
+      },
+      {
+        "id": "6",
+        "name": "홍크롤러",
+        "email": "crawler.hong@icebang.site",
+        "status": "DISABLED",
+        "created_at": "2024-01-20T08:30:00Z",
+        "updated_at": "2024-01-20T08:30:00Z",
+        "user_organizations": [
+          {
+            "id": "6",
+            "user_id": "6",
+            "organization_id": "1",
+            "department_id": "1",
+            "position_id": "4",
+            "employee_number": "AI25002",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "7",
+            "user_id": "6",
+            "role_id": "3"
+          }
+        ]
+      },
+      {
+        "id": "7",
+        "name": "서데이터",
+        "email": "data.seo@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-21T14:20:00Z",
+        "updated_at": "2024-01-21T14:20:00Z",
+        "user_organizations": [
+          {
+            "id": "7",
+            "user_id": "7",
+            "organization_id": "1",
+            "department_id": "2",
+            "position_id": "4",
+            "employee_number": "DAT25002",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "8",
+            "user_id": "7",
+            "role_id": "4"
+          }
+        ]
+      },
+      {
+        "id": "8",
+        "name": "윤워크플로",
+        "email": "workflow.yoon@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-22T09:15:00Z",
+        "updated_at": "2024-01-22T09:15:00Z",
+        "user_organizations": [
+          {
+            "id": "8",
+            "user_id": "8",
+            "organization_id": "1",
+            "department_id": "5",
+            "position_id": "3",
+            "employee_number": "OPS25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "9",
+            "user_id": "8",
+            "role_id": "6"
+          }
+        ]
+      },
+      {
+        "id": "9",
+        "name": "시스템관리자",
+        "email": "admin@icebang.site",
+        "status": "ACTIVE",
+        "created_at": "2024-01-10T08:00:00Z",
+        "updated_at": "2024-01-10T08:00:00Z",
+        "user_organizations": [
+          {
+            "id": "9",
+            "user_id": "9",
+            "organization_id": "1",
+            "department_id": "5",
+            "position_id": "2",
+            "employee_number": "OPS25000",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "10",
+            "user_id": "9",
+            "role_id": "1"
+          }
+        ]
+      },
+      {
+        "id": "10",
+        "name": "김주니어",
+        "email": "junior.kim@icebang.site",
+        "status": "LOCKED",
+        "created_at": "2024-01-23T10:00:00Z",
+        "updated_at": "2024-01-25T16:45:00Z",
+        "user_organizations": [
+          {
+            "id": "10",
+            "user_id": "10",
+            "organization_id": "1",
+            "department_id": "4",
+            "position_id": "5",
+            "employee_number": "MKT25001",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "11",
+            "user_id": "10",
+            "role_id": "7"
+          }
+        ]
+      },
+      {
+        "id": "11",
+        "name": "이인턴",
+        "email": "intern.lee@icebang.site",
+        "status": "DISABLED",
+        "created_at": "2024-01-24T11:30:00Z",
+        "updated_at": "2024-01-26T09:30:00Z",
+        "user_organizations": [
+          {
+            "id": "11",
+            "user_id": "11",
+            "organization_id": "1",
+            "department_id": "1",
+            "position_id": "6",
+            "employee_number": "AI25003",
+            "status": "ACTIVE"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "12",
+            "user_id": "11",
+            "role_id": "7"
+          }
+        ]
+      },
+      {
+        "id": "12",
+        "name": "박승인대기",
+        "email": "pending.park@icebang.site",
+        "status": "PENDING",
+        "created_at": "2024-01-27T09:00:00Z",
+        "updated_at": "2024-01-27T09:00:00Z",
+        "user_organizations": [
+          {
+            "id": "13",
+            "user_id": "12",
+            "organization_id": "1",
+            "department_id": "6",
+            "position_id": "5",
+            "employee_number": "PLN25002",
+            "status": "PENDING"
+          }
+        ],
+        "user_roles": [
+          {
+            "id": "14",
+            "user_id": "12",
+            "role_id": "7"
+          }
+        ]
+      }
+    ],
+    "totalElements": 12,
+    "totalPages": 1,
+    "number": 0,
+    "size": 20,
+    "first": true,
+    "last": true
+  },
+  "message": "사용자 목록 조회 성공",
+  "status": "OK"
+}
