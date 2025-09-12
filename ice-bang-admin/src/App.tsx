@@ -44,6 +44,7 @@ import {
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+import {TeamOutlined} from "@ant-design/icons";
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
                     show: "/users/show/:id",
                     meta: {
                       canDelete: true,
+                      icon: <TeamOutlined />,
                       label: "사용자 관리",
                     },
                   },
