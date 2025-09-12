@@ -4,6 +4,7 @@ import {
   ShowButton,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
+import { useGo } from "@refinedev/core";
 import { Space, Table, Tag, Steps, Button, Tooltip } from "antd";
 import { 
   CheckCircleOutlined, 
@@ -16,6 +17,8 @@ import {
 const { Step } = Steps;
 
 export const WorkflowsHistoryList = () => {
+  const go = useGo();
+
   // 하드코딩된 워크플로 이력 데이터
   const hardcodedData = [
     {
@@ -171,7 +174,7 @@ export const WorkflowsHistoryList = () => {
               size="small" 
               recordItemId={record.id}
               onClick={() => {
-                window.location.href = `/workflows-history/show/${record.id}`;
+                go({ to: `/workflows-history/show/${record.id}` });
               }}
             />
           )}

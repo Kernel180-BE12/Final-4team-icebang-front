@@ -78,7 +78,7 @@ function App() {
                     list: "/workflows-history",
                     // create: "/blog-posts/create",
                     // edit: "/blog-posts/edit/:id",
-                    // show: "/blog-posts/show/:id",
+                    show: "/blog-posts/show/:id",
                     meta: {
                       canDelete: false,
                     },
