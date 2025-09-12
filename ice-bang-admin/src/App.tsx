@@ -37,6 +37,7 @@ import {
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+import { SchedulerHistoryList } from "./pages/scheduler-history";
 
 function App() {
   return (
@@ -60,6 +61,16 @@ function App() {
                     show: "/blog-posts/show/:id",
                     meta: {
                       canDelete: true,
+                    },
+                  },
+                   {
+                    name: "workflows_history",
+                    list: "/workflows-history",
+                    // create: "/blog-posts/create",
+                    // edit: "/blog-posts/edit/:id",
+                    // show: "/blog-posts/show/:id",
+                    meta: {
+                      canDelete: false,
                     },
                   },
                   {
@@ -130,6 +141,12 @@ function App() {
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
+                  </Route>
+                  <Route path="/workflows-history">
+                     <Route index element={<SchedulerHistoryList />} />
+                      {/* <Route path="create" element={<CategoryCreate />} />
+                      <Route path="edit/:id" element={<CategoryEdit />} />
+                      <Route path="show/:id" element={<CategoryShow />} /> */}
                   </Route>
                 </Routes>
 
