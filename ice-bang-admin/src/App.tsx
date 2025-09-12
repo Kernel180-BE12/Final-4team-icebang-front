@@ -17,6 +17,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
+import { mockDataProvider } from "./providers/mockProvider";
 import { App as AntdApp } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { authProvider } from "./providers/authProvider";
@@ -34,15 +35,17 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
-// import {
-//   UserCreate,
-//   UserEdit,
-//   UserList,
-//   UserShow,
-// } from "./pages/user";
+import {
+  UserCreate,
+  UserEdit,
+  UserList,
+  UserShow,
+} from "./pages/user";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
+import {TeamOutlined} from "@ant-design/icons";
+import { SchedulerHistoryList } from "./pages/scheduler-history";
 
 function App() {
   return (
@@ -53,7 +56,7 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+                dataProvider={mockDataProvider}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -68,6 +71,16 @@ function App() {
                       canDelete: true,
                     },
                   },
+                   {
+                    name: "workflows_history",
+                    list: "/workflows-history",
+                    // create: "/blog-posts/create",
+                    // edit: "/blog-posts/edit/:id",
+                    // show: "/blog-posts/show/:id",
+                    meta: {
+                      canDelete: false,
+                    },
+                  },
                   {
                     name: "categories",
                     list: "/categories",
@@ -78,17 +91,18 @@ function App() {
                       canDelete: true,
                     },
                   },
-                  // {
-                  //   name: "users",
-                  //   list: "/users",
-                  //   create: "/users/create",
-                  //   edit: "/users/edit/:id",
-                  //   show: "/users/show/:id",
-                  //   meta: {
-                  //     canDelete: true,
-                  //     label: "사용자 관리",
-                  //   },
-                  // },
+                  {
+                    name: "users",
+                    list: "/users",
+                    create: "/users/create",
+                    edit: "/users/edit/:id",
+                    show: "/users/show/:id",
+                    meta: {
+                      canDelete: true,
+                      icon: <TeamOutlined />,
+                      label: "사용자 관리",
+                    },
+                  },
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -129,12 +143,12 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
                     </Route>
-                    {/*<Route path="/users">*/}
-                    {/*  <Route index element={<UserList />} />*/}
-                    {/*  <Route path="create" element={<UserCreate />} />*/}
-                    {/*  <Route path="edit/:id" element={<UserEdit />} />*/}
-                    {/*  <Route path="show/:id" element={<UserShow />} />*/}
-                    {/*</Route>*/}
+                    <Route path="/users">
+                      <Route index element={<UserList />} />
+                      <Route path="create" element={<UserCreate />} />
+                      <Route path="edit/:id" element={<UserEdit />} />
+                      <Route path="show/:id" element={<UserShow />} />
+                    </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                   <Route
@@ -153,6 +167,12 @@ function App() {
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
+                  </Route>
+                  <Route path="/workflows-history">
+                     <Route index element={<SchedulerHistoryList />} />
+                      {/* <Route path="create" element={<CategoryCreate />} />
+                      <Route path="edit/:id" element={<CategoryEdit />} />
+                      <Route path="show/:id" element={<CategoryShow />} /> */}
                   </Route>
                 </Routes>
 
