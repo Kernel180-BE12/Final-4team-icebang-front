@@ -45,7 +45,8 @@ import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import {TeamOutlined} from "@ant-design/icons";
-import { SchedulerHistoryList } from "./pages/scheduler-history";
+import { WorkflowsHistoryList } from "./pages/workflows-history";
+import { WorkflowsHistoryShow } from "./pages/workflows-history";
 import { MyPage } from "./pages/my-page";
 
 function App() {
@@ -72,12 +73,10 @@ function App() {
                       canDelete: true,
                     },
                   },
-                   {
+                  {
                     name: "workflows_history",
                     list: "/workflows-history",
-                    // create: "/blog-posts/create",
-                    // edit: "/blog-posts/edit/:id",
-                    // show: "/blog-posts/show/:id",
+                    show: "/workflows-history/show/:id",
                     meta: {
                       canDelete: false,
                     },
@@ -139,6 +138,10 @@ function App() {
                       <Route path="edit/:id" element={<BlogPostEdit />} />
                       <Route path="show/:id" element={<BlogPostShow />} />
                     </Route>
+                    <Route path="/workflows-history">
+                      <Route index element={<WorkflowsHistoryList />} />
+                      <Route path="show/:id" element={<WorkflowsHistoryShow />} />
+                    </Route>
                     <Route path="/categories">
                       <Route index element={<CategoryList />} />
                       <Route path="create" element={<CategoryCreate />} />
@@ -169,12 +172,6 @@ function App() {
                       path="/forgot-password"
                       element={<ForgotPassword />}
                     />
-                  </Route>
-                  <Route path="/workflows-history">
-                     <Route index element={<SchedulerHistoryList />} />
-                      {/* <Route path="create" element={<CategoryCreate />} />
-                      <Route path="edit/:id" element={<CategoryEdit />} />
-                      <Route path="show/:id" element={<CategoryShow />} /> */}
                   </Route>
                 </Routes>
 
