@@ -1,4 +1,4 @@
-// src/pages/scheduler-history/list.tsx
+// src/pages/workflows-history/list.tsx
 import {
   List,
   ShowButton,
@@ -15,13 +15,15 @@ import {
 
 const { Step } = Steps;
 
-export const SchedulerHistoryList = () => {
-  // 하드코딩된 스케줄러 이력 데이터
+export const WorkflowsHistoryList = () => {
+  // 하드코딩된 워크플로 이력 데이터
   const hardcodedData = [
     {
       id: 1,
-      scheduler_name: "블로그 A 자동 포스팅",
+      workflow_name: "네이버 블로그 포스팅#1",
       execution_date: "2024-09-01T09:00:00Z",
+      completion_date: "2024-09-01T09:08:00Z",
+      creator_id: "user123",
       total_steps: 6,
       current_step: 6,
       status: "completed",
@@ -36,8 +38,10 @@ export const SchedulerHistoryList = () => {
     },
     {
       id: 2,
-      scheduler_name: "블로그 B 자동 포스팅",
+      workflow_name: "티스토리 블로그 포스팅#2",
       execution_date: "2024-09-01T14:30:00Z",
+      completion_date: null,
+      creator_id: "user456",
       total_steps: 6,
       current_step: 3,
       status: "failed",
@@ -52,8 +56,10 @@ export const SchedulerHistoryList = () => {
     },
     {
       id: 3,
-      scheduler_name: "블로그 C 자동 포스팅",
+      workflow_name: "네이버 블로그 포스팅#3",
       execution_date: "2024-09-01T08:15:00Z",
+      completion_date: null,
+      creator_id: "user789",
       total_steps: 6,
       current_step: 5,
       status: "running",
@@ -106,74 +112,21 @@ export const SchedulerHistoryList = () => {
     return <Tag color={config.color}>{config.text}</Tag>;
   };
 
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return "-";
     return new Date(dateString).toLocaleString("ko-KR");
-  };
-
-  const renderStepProgress = (steps: any[]) => {
-    return (
-      <div style={{ width: "400px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {steps.map((step, index) => (
-            <Tooltip 
-              key={step.step} 
-              title={`${step.name} - ${step.duration}`}
-              placement="top"
-            >
-              <div 
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer"
-                }}
-                onClick={() => console.log(`Step ${step.step} clicked:`, step)}
-              >
-                {getStatusIcon(step.status)}
-                {index < steps.length - 1 && (
-                  <div 
-                    style={{
-                      width: "20px",
-                      height: "2px",
-                      backgroundColor: step.status === "success" ? "#52c41a" : "#d9d9d9",
-                      marginLeft: "4px",
-                      marginRight: "4px"
-                    }}
-                  />
-                )}
-              </div>
-            </Tooltip>
-          ))}
-        </div>
-        <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-          {steps.filter(s => s.status === "success").length} / {steps.length} 단계 완료
-        </div>
-      </div>
-    );
   };
 
   return (
     <List
-      title="스케줄러 실행 이력"
-      headerProps={{
-        extra: (
-          <div style={{ fontSize: "14px", color: "#666" }}>
-            각 단계를 클릭하면 상세 정보를 확인할 수 있습니다
-          </div>
-        )
-      }}
+      title="워크플로 실행 이력"
     >
       <Table {...tableProps} rowKey="id" scroll={{ x: 1200 }}>
-        <Table.Column 
-          dataIndex="id" 
-          title="ID" 
-          width={60}
-          fixed="left" 
-        />
         
         <Table.Column
-          dataIndex="scheduler_name"
-          title="스케줄러명"
-          width={180}
+          dataIndex="workflow_name"
+          title="워크플로명"
+          width={200}
           fixed="left"
           render={(name: string) => (
             <div style={{ fontWeight: "500" }}>{name}</div>
@@ -188,6 +141,19 @@ export const SchedulerHistoryList = () => {
         />
         
         <Table.Column
+          dataIndex="completion_date"
+          title="완료 시간"
+          width={150}
+          render={(date: string | null) => formatDateTime(date)}
+        />
+        
+        <Table.Column
+          dataIndex="creator_id"
+          title="생성자 ID"
+          width={120}
+        />
+        
+        <Table.Column
           dataIndex="status"
           title="상태"
           width={100}
@@ -195,38 +161,19 @@ export const SchedulerHistoryList = () => {
         />
         
         <Table.Column
-          title="진행 상황"
-          width={450}
-          render={(_, record: BaseRecord) => renderStepProgress(record.steps)}
-        />
-        
-        <Table.Column
-          title="Actions"
+          title="상세 보기"
           dataIndex="actions"
           width={100}
           fixed="right"
           render={(_, record: BaseRecord) => (
-            <Space>
-              <ShowButton 
-                hideText 
-                size="small" 
-                recordItemId={record.id}
-                onClick={() => {
-                  window.location.href = `/scheduler-history/show/${record.id}`;
-                }}
-              />
-              <Tooltip title="단계별 상세보기">
-                <Button
-                  type="link"
-                  icon={<EyeOutlined />}
-                  size="small"
-                  onClick={() => {
-                    console.log("Steps detail view for:", record.id);
-                    // 단계별 상세 보기 모달이나 페이지로 이동
-                  }}
-                />
-              </Tooltip>
-            </Space>
+            <ShowButton 
+              hideText 
+              size="small" 
+              recordItemId={record.id}
+              onClick={() => {
+                window.location.href = `/workflows-history/show/${record.id}`;
+              }}
+            />
           )}
         />
       </Table>
