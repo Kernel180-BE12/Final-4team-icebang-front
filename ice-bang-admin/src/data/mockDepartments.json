@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "1",
+        "name": "AI개발팀",
+        "organization_id": "1"
+      },
+      {
+        "id": "2",
+        "name": "데이터팀",
+        "organization_id": "1"
+      },
+      {
+        "id": "3",
+        "name": "콘텐츠팀",
+        "organization_id": "1"
+      },
+      {
+        "id": "4",
+        "name": "마케팅팀",
+        "organization_id": "1"
+      },
+      {
+        "id": "5",
+        "name": "운영팀",
+        "organization_id": "1"
+      },
+      {
+        "id": "6",
+        "name": "기획팀",
+        "organization_id": "1"
+      }
+    ]
+  },
+  "message": "부서 목록 조회 성공",
+  "status": "OK"
+}
