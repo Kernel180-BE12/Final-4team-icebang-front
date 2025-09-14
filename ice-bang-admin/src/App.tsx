@@ -41,6 +41,10 @@ import {
   UserList,
   UserShow,
 } from "./pages/user";
+import{
+  WorkflowList,
+  WorkflowShow
+} from "./pages/workflows-list";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
@@ -77,6 +81,16 @@ function App() {
                     // create: "/blog-posts/create",
                     // edit: "/blog-posts/edit/:id",
                     // show: "/blog-posts/show/:id",
+                    meta: {
+                      canDelete: false,
+                    },
+                  },
+                  {
+                    name: "workflows_list",
+                    list: "/workflows-list",
+                    // create: "/blog-posts/create",
+                    // edit: "/blog-posts/edit/:id",
+                    // show: "/workflows-list/show",
                     meta: {
                       canDelete: false,
                     },
@@ -149,6 +163,10 @@ function App() {
                       <Route path="edit/:id" element={<UserEdit />} />
                       <Route path="show/:id" element={<UserShow />} />
                     </Route>
+                    <Route path="/workflows-list">
+                      <Route index element={<WorkflowList />} />
+                      {/* <Route path="show/:id" element={<WorkflowShow />} /> */}
+                    </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                   <Route
@@ -174,6 +192,7 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} /> */}
                   </Route>
+
                 </Routes>
 
                 <RefineKbar />
