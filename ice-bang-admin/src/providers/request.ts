@@ -15,3 +15,13 @@ export async function request<T>(url: string, options?: RequestInit): Promise<T>
 
   return result.data;
 }
+
+export interface PageResult<T> {
+  data: T[];
+  total: number;
+  current: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}

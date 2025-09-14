@@ -52,7 +52,6 @@ import { MyPage } from "./pages/my-page";
 function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
