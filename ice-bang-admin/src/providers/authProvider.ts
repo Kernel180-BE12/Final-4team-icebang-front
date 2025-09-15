@@ -42,15 +42,26 @@ export const authProvider: AuthProvider = {
   },
 
   check: async () => {
-    const response = await fetch(`${API_URL}/v0/auth/check-session`, {
-      credentials: "include",
-    });
-    const result = await response.json();
+    try {
+      const response = await fetch(`${API_URL}/v0/auth/check-session`, {
+        credentials: "include",
+      });
 
-  if (result.success && result.data === true) {
-    return { authenticated: true };
-  }
-  return { authenticated: false, redirectTo: "/login" };
+      // 401이면 인증되지 않은 상태 (정상)
+      if (response.status === 401) {
+        return { authenticated: false, redirectTo: "/login" };
+      }
+
+      const result = await response.json();
+      if (result.success && result.data === true) {
+        return { authenticated: true };
+      }
+
+      return { authenticated: false, redirectTo: "/login" };
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      return { authenticated: false, redirectTo: "/login" };
+    }
   },
 
   getPermissions: async () => {
