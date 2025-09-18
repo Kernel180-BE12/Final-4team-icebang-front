@@ -18,6 +18,7 @@ import routerBindings, {
 } from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
 import { mockDataProvider } from "./providers/mockProvider";
+import { workflowProvider } from "./providers/workflowProvider";
 import { App as AntdApp } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { authProvider } from "./providers/authProvider";
@@ -62,7 +63,10 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={mockDataProvider}
+                dataProvider={{
+                  default: mockDataProvider,
+                  workflows_list: workflowProvider,
+                }}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 authProvider={authProvider}
@@ -77,16 +81,6 @@ function App() {
                       canDelete: true,
                     },
                   },
-                   {
-                    name: "workflows_history",
-                    list: "/workflows-history",
-                    // create: "/blog-posts/create",
-                    // edit: "/blog-posts/edit/:id",
-                    show: "/blog-posts/show/:id",
-                    meta: {
-                      canDelete: false,
-                    },
-                  },
                   {
                     name: "workflows_history",
                     list: "/workflows-history",
@@ -98,11 +92,10 @@ function App() {
                   {
                     name: "workflows_list",
                     list: "/workflows-list",
-                    // create: "/blog-posts/create",
-                    // edit: "/blog-posts/edit/:id",
-                    // show: "/workflows-list/show",
                     meta: {
                       canDelete: false,
+                      label: "워크플로우 목록",
+                      dataProviderName: "workflows_list", // 여기서 매칭
                     },
                   },
                   {
@@ -180,7 +173,6 @@ function App() {
                     </Route>
                     <Route path="/workflows-list">
                       <Route index element={<WorkflowList />} />
-                      {/* <Route path="show/:id" element={<WorkflowShow />} /> */}
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
@@ -201,13 +193,6 @@ function App() {
                       element={<ForgotPassword />}
                     />
                   </Route>
-                  <Route path="/workflows-history">
-                     <Route index element={<WorkflowsHistoryList />} />
-                      {/* <Route path="create" element={<CategoryCreate />} />
-                      <Route path="edit/:id" element={<CategoryEdit />} />
-                      <Route path="show/:id" element={<CategoryShow />} /> */}
-                  </Route>
-
                 </Routes>
 
                 <RefineKbar />
