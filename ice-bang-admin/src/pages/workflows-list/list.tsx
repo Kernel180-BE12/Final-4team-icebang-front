@@ -203,6 +203,17 @@ export const WorkflowList = () => {
         <Table.Column dataIndex="isEnabled" title="활성 여부" width={100} render={(isEnabled) => <StatusTag isEnabled={isEnabled} />} />
         <Table.Column dataIndex="createdBy" title="생성자" width={120} />
         <Table.Column dataIndex="createdAt" title="생성일시" width={180} render={(date) => formatDateTime(date)} />
+        <Table.Column
+          title="작업"
+          dataIndex="actions"
+          width={120}
+          fixed="right"
+          render={(_, record) => (
+            <Space>
+              <ShowButton hideText size="small" recordItemId={record.id} />
+            </Space>
+          )}
+        />
       </Table>
     </List>
   );

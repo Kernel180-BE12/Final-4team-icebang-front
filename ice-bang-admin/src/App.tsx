@@ -92,6 +92,7 @@ function App() {
                   {
                     name: "workflows_list",
                     list: "/workflows-list",
+                    show: "/workflows-list/show/:id",
                     meta: {
                       canDelete: false,
                       label: "워크플로우 목록",
@@ -173,6 +174,7 @@ function App() {
                     </Route>
                     <Route path="/workflows-list">
                       <Route index element={<WorkflowList />} />
+                      <Route path="show/:id" element={<WorkflowShow />} />
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
