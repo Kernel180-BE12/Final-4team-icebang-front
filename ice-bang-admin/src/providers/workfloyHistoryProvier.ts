@@ -8,7 +8,7 @@ export const workflowHistoryProvider: DataProvider = {
     getOne: async ({ id }) => {
     const response = await request<any>(
     //   `${API_URL}/v0/workflow-runs/${id}`
-        `${API_URL}/v0/workflow-runs/1`,
+        `${API_URL}/v0/workflow-runs/${id}`,
         {
         credentials: 'include'
       }
