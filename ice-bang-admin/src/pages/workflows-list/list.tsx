@@ -1,7 +1,9 @@
 // src/pages/scheduler-history/list.tsx
-import { List, ShowButton } from "@refinedev/antd";
+import { List, ShowButton, useTable } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Space, Table, Tag, Tooltip, Button } from "antd";
+import { CrudFilter } from "@refinedev/core";
+import { SearchOutlined } from "@ant-design/icons";
+import { Space, Table, Tag, Tooltip, Button, Card, Form, Row, Col, Input, Select } from "antd";
 import { 
   CheckCircleOutlined, 
   CloseCircleOutlined, 
@@ -9,82 +11,198 @@ import {
   ClockCircleOutlined,
   EyeOutlined 
 } from "@ant-design/icons";
+import React, { useState, useMemo } from "react";
 
 // =================================================================
-// 1. 재사용 가능한 UI 컴포넌트 (변경 없음)
+// 1. 재사용 가능한 UI 컴포넌트
 // =================================================================
 
-const StatusTag = ({ status }: { status: string }) => {
-  const statusConfig = {
-    activate: { color: "success", text: "활성" },
-    failed: { color: "error", text: "삭제" },
-    pending: { color: "default", text: "비활성" }
-  };
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-  const isProcessing = status === 'running';
+const StatusTag = ({ isEnabled }: { isEnabled: boolean }) => {
   return (
     <Tag 
-      color={config.color} 
-      icon={isProcessing ? <SyncOutlined spin /> : undefined}
+      color={isEnabled ? "success" : "default"}
     >
-      {config.text}
+      {isEnabled ? "활성" : "비활성"}
     </Tag>
   );
 };
 
 export const WorkflowList = () => {
-  // API 대신 사용할 하드코딩 데이터
-  const hardcodedData = [
-    {
-      id: 1,
-      workflow_name: "블로그 A 자동 포스팅",
-      workflow_description: "네이버 블로그에 자동으로 포스팅하는 워크플로우",
-      execution_date: "2024-09-01T09:00:00Z",
-      posting_setting: "네이버 블로그 - 개인 블로그",
-      workflow_setting: "자동 포스팅",
-      status: "default",
+  // Refine useTable hook으로 API 호출
+  const { tableProps, searchFormProps, filters, setFilters, setCurrent, setPageSize } = useTable({
+    resource: "workflows_list", // App.tsx의 resource 이름과 일치
+    syncWithLocation: true, // URL과 동기화
+    filters: {
+      initial: [],
     },
-    {
-      id: 2,
-      workflow_name: "블로그 B 자동 포스팅",
-      workflow_description: "네이버 블로그에 자동으로 포스팅하는 워크플로우",
-      execution_date: "2024-09-01T14:30:00Z",
-      posting_setting: "네이버 블로그 - 개인 블로그",
-      workflow_setting: "자동 포스팅",
-      status: "activate",
+    pagination: {
+      current: 1,
+      pageSize: 10,
     },
-    {
-      id: 3,
-      workflow_name: "블로그 C 자동 포스팅",
-      workflow_description: "티스토리 블로그에 자동으로 포스팅하는 워크플로우",
-      execution_date: "2024-09-01T08:15:00Z",
-      posting_setting: "티스토리 블로그 - 개인 블로그",
-      workflow_setting: "자동 포스팅",
-      status: "failed",
-    }
-  ];
+  });
 
-  // `useTable` 훅 대신 수동으로 tableProps 객체 생성
-  const tableProps = {
-    dataSource: hardcodedData,
-    loading: false, // 데이터가 이미 있으므로 로딩 상태는 false
-  };
-  
   const formatDateTime = (dateString: string) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleString("ko-KR");
   };
 
+  // 검색 및 필터 처리
+  const onSearch = (values: any) => {
+    const newFilters: CrudFilter[] = [];
+
+    // 이름 검색
+    if (values.name && values.name.trim() !== '') {
+      newFilters.push({
+        field: "name",
+        operator: "contains",
+        value: values.name.trim(),
+      });
+    }
+
+    // 설명 검색  
+    if (values.description && values.description.trim() !== '') {
+      newFilters.push({
+        field: "description", 
+        operator: "contains",
+        value: values.description.trim(),
+      });
+    }
+
+    // 생성자 필터
+    if (values.created_by && values.created_by.trim() !== '') {
+      newFilters.push({
+        field: "createdBy",
+        operator: "contains", 
+        value: values.created_by.trim(),
+      });
+    }
+
+    // 활성 여부 필터
+    if (values.isEnabled !== undefined && values.isEnabled !== '') {
+      newFilters.push({
+        field: "isEnabled",
+        operator: "eq",
+        value: values.isEnabled,
+      });
+    }
+
+    // Refine의 내장 필터 관리 사용 - URL과 자동 동기화됨
+    setFilters(newFilters, "replace");
+    setCurrent(1); // 검색 시 첫 페이지로
+  };
+
+  // 필터 초기화 - Refine 방식 사용
+  const onReset = () => {
+    // 폼 필드 초기화
+    searchFormProps.form?.setFieldsValue({
+      name: '',
+      description: '',
+      created_by: '',
+      isEnabled: ''
+    });
+    
+    // 필터 완전 초기화 - Refine이 URL도 자동으로 정리
+    setFilters([], "replace");
+    setCurrent(1);
+    setPageSize(10);
+  };
+
   return (
     <List title="워크플로우 리스트">
+      {/* 필터링 영역 */}
+      <Card style={{ marginBottom: 16 }}>
+        <Form
+          {...searchFormProps}
+          layout="vertical"
+          onFinish={(values) => {
+            console.log('Form onFinish 호출됨:', values);
+            onSearch(values);
+          }}
+          initialValues={{
+            name: '',
+            description: '',
+            created_by: '',
+            isEnabled: ''
+          }}
+        >
+          {/* 첫 번째 줄: 이름, 설명 */}
+          <Row gutter={16}>
+            <Col span={6}>
+              <Form.Item
+                label="이름"
+                name="name"
+              >
+                <Input
+                  placeholder="워크플로우 이름을 입력하세요"
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                label="설명"
+                name="description"
+              >
+                <Input
+                  placeholder="설명을 입력하세요"
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                label="생성자"
+                name="created_by"
+              >
+                <Input
+                  placeholder="생성자를 입력하세요"
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                label="활성 여부"
+                name="isEnabled"
+              >
+                <Select
+                  placeholder="전체"
+                  allowClear
+                  options={[
+                    { value: '', label: '전체' },
+                    { value: true, label: '활성' },
+                    { value: false, label: '비활성' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col span={24} style={{ textAlign: 'right' }}>
+              <Space>
+                <Button onClick={onReset}>
+                  초기화
+                </Button>
+                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                  검색
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
+
       <Table {...tableProps} rowKey="id" scroll={{ x: 1200 }}>
         <Table.Column dataIndex="id" title="ID" width={60} fixed="left" />
-        <Table.Column dataIndex="workflow_name" title="이름" width={200} fixed="left" />
-        <Table.Column dataIndex="workflow_description" title="설명" width={200} fixed="left" />
-        <Table.Column dataIndex="posting_setting" title="블로그 설정" width={200} fixed="left" />
-        <Table.Column dataIndex="workflow_setting" title="스케줄러 설정" width={200} fixed="left" />
-        <Table.Column dataIndex="status" title="활성 여부" width={100} render={(status) => <StatusTag status={status} />} />
-        <Table.Column dataIndex="execution_date" title="생성일시" width={180} render={(date) => formatDateTime(date)} />
+        <Table.Column dataIndex="name" title="이름" width={200} fixed="left" />
+        <Table.Column dataIndex="description" title="설명" width={200} fixed="left" />
+        <Table.Column dataIndex="isEnabled" title="활성 여부" width={100} render={(isEnabled) => <StatusTag isEnabled={isEnabled} />} />
+        <Table.Column dataIndex="createdBy" title="생성자" width={120} />
+        <Table.Column dataIndex="createdAt" title="생성일시" width={180} render={(date) => formatDateTime(date)} />
       </Table>
     </List>
   );
