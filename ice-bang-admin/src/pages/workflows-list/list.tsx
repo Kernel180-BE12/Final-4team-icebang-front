@@ -1,7 +1,7 @@
 // src/pages/scheduler-history/list.tsx
 import { List, ShowButton, useTable } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { CrudFilter } from "@refinedev/core";
+import { CrudFilter, useApiUrl } from "@refinedev/core";
 import { SearchOutlined } from "@ant-design/icons";
 import { Space, Table, Tag, Tooltip, Button, Card, Form, Row, Col, Input, Select } from "antd";
 import { 
@@ -12,6 +12,7 @@ import {
   EyeOutlined 
 } from "@ant-design/icons";
 import React, { useState, useMemo } from "react";
+import { T } from "react-router/dist/development/index-react-server-client-BKpa2trA";
 
 // =================================================================
 // 1. 재사용 가능한 UI 컴포넌트
@@ -28,6 +29,7 @@ const StatusTag = ({ isEnabled }: { isEnabled: boolean }) => {
 };
 
 export const WorkflowList = () => {
+  const apiUrl = useApiUrl("workflows_list");
   // Refine useTable hook으로 API 호출
   const { tableProps, searchFormProps, filters, setFilters, setCurrent, setPageSize } = useTable({
     resource: "workflows_list", // App.tsx의 resource 이름과 일치
@@ -203,6 +205,45 @@ export const WorkflowList = () => {
         <Table.Column dataIndex="isEnabled" title="활성 여부" width={100} render={(isEnabled) => <StatusTag isEnabled={isEnabled} />} />
         <Table.Column dataIndex="createdBy" title="생성자" width={120} />
         <Table.Column dataIndex="createdAt" title="생성일시" width={180} render={(date) => formatDateTime(date)} />
+        <Table.Column
+          title="작업"
+          dataIndex="actions"
+          width={120}
+          fixed="right"
+          render={(_, record) => (
+            <Space>
+              <ShowButton hideText size="small" recordItemId={record.id} />
+            </Space>
+          )}
+        />
+        <Table.Column
+          title="수동 실행"
+          width={180}
+          fixed="left"
+          render={(_, record) => (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => {
+                fetch(`${apiUrl}/v0/workflows/${record.id}/run`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                })
+                .then(response => response.json())
+                .then(data => {
+                  console.log('워크플로우 실행 성공:', data);
+                })
+                .catch(error => {
+                  console.error('워크플로우 실행 실패:', error);
+                });
+              }}
+            >
+              실행
+            </Button>
+          )}
+        />
       </Table>
     </List>
   );

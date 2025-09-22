@@ -1,4 +1,4 @@
-import { Authenticated, GitHubBanner, Refine } from "@refinedev/core";
+import { Authenticated, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -57,7 +57,6 @@ import { MyPage } from "./pages/my-page";
 function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
@@ -92,6 +91,8 @@ function App() {
                   {
                     name: "workflows_list",
                     list: "/workflows-list",
+                    show: "/workflows-list/show/:id",
+
                     meta: {
                       canDelete: false,
                       label: "워크플로우 목록",
@@ -173,6 +174,8 @@ function App() {
                     </Route>
                     <Route path="/workflows-list">
                       <Route index element={<WorkflowList />} />
+                      <Route path="show/:id" element={<WorkflowShow />} />
+
                     </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
