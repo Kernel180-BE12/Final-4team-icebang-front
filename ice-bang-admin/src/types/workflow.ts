@@ -52,6 +52,7 @@ export interface IWorkflowBackendDto {
     updatedBy?: string; // 수정자
     schedules: ISchedule[]; // 복수 스케줄
     config: IWorkflowConfig; // 워크플로우 설정
+
 }
 
 // 프론트엔드에서 사용할 Interface (enabled → isEnabled 변환)

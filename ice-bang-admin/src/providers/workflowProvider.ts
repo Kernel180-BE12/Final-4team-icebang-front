@@ -360,9 +360,10 @@ const fetchWorkflow = async (endpoint: string): Promise<IWorkflowListResponse | 
 
 // Workflows 전용 DataProvider (목데이터 사용)
 export const workflowProvider: DataProvider = {
-    // 목록 조회 (원래 API 호출)
+    // 목록 조회
     getList: async ({ resource, pagination }) => {
         console.log("📋 getList 호출됨 - resource:", resource, "pagination:", pagination);
+
 
         if (resource !== "workflows_list") {
             console.error("❌ 잘못된 리소스:", resource);

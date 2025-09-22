@@ -30,7 +30,6 @@ const StatusTag = ({ isEnabled }: { isEnabled: boolean }) => {
 
 export const WorkflowList = () => {
   const apiUrl = useApiUrl("workflows_list");
-
   // Refine useTable hook으로 API 호출
   const { tableProps, searchFormProps, filters, setFilters, setCurrent, setPageSize } = useTable({
     resource: "workflows_list", // App.tsx의 resource 이름과 일치
