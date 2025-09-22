@@ -1,338 +1,321 @@
-// src/pages/scheduler-history/show.tsx
-import { Show, TextField } from "@refinedev/antd";
-import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button } from "antd";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import { 
-  CheckCircleOutlined, 
-  CloseCircleOutlined, 
-  SyncOutlined,
+import { Show, TextField, DateField } from "@refinedev/antd";
+import { useShow } from "@refinedev/core";
+import { Typography, Card, Descriptions, Tag, Space, Steps, Alert, Button } from "antd";
+import { useState } from "react";
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  TagOutlined,
   ClockCircleOutlined,
-  InfoCircleOutlined,
-  WarningOutlined
+  SettingOutlined,
+  PlayCircleOutlined,
+  ToolOutlined,
+  CodeOutlined
 } from "@ant-design/icons";
+import {
+  IWorkflow,
+  IJob,
+  getWorkflowStatusText,
+  getWorkflowStatusColor,
+  getScheduleTypeText,
+  getScheduleTypeColor,
+  cronToKorean
+} from "../../types/workflow";
 
 const { Title, Text } = Typography;
-const { Step } = Steps;
 
 export const WorkflowShow = () => {
-  const { id } = useParams();
-  const [record, setRecord] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const { queryResult } = useShow<IWorkflow>({
+    resource: "workflows_list",
+  });
 
-  // 하드코딩된 데이터 (실제로는 API에서 가져올 데이터)
-  const mockData: { [key: string]: any } = {
-    "1": {
-      id: 1,
-      scheduler_name: "블로그 A 자동 포스팅",
-      execution_date: "2024-09-01T09:00:00Z",
-      completion_date: "2024-09-01T09:08:20Z",
-      total_duration: "8m 20s",
-      total_steps: 6,
-      current_step: 6,
-      status: "completed",
-      trigger_type: "scheduled",
-      steps: [
-        { 
-          step: 1, 
-          name: "네이버 트렌드 크롤링", 
-          status: "success", 
-          start_time: "2024-09-01T09:00:00Z",
-          end_time: "2024-09-01T09:02:15Z",
-          duration: "2m 15s",
-          details: {
-            keywords_found: 25,
-            trending_topics: ["스마트폰", "무선이어폰", "노트북"],
-            data_source: "naver_trends_api"
-          },
-          logs: [
-            { time: "09:00:00", message: "네이버 트렌드 API 연결 시작", level: "info" },
-            { time: "09:00:15", message: "실시간 검색어 25개 추출 완료", level: "success" },
-            { time: "09:02:15", message: "키워드 정제 및 분류 완료", level: "success" }
-          ]
-        },
-        { 
-          step: 2, 
-          name: "싸다구 몰 검색", 
-          status: "success", 
-          start_time: "2024-09-01T09:02:15Z",
-          end_time: "2024-09-01T09:03:45Z",
-          duration: "1m 30s",
-          details: {
-            search_queries: 25,
-            products_found: 142,
-            successful_searches: 23
-          },
-          logs: [
-            { time: "09:02:15", message: "싸다구 몰 검색 시작", level: "info" },
-            { time: "09:02:30", message: "키워드 '스마트폰'으로 검색: 47개 상품 발견", level: "info" },
-            { time: "09:03:45", message: "총 142개 상품 정보 수집 완료", level: "success" }
-          ]
-        },
-        { 
-          step: 3, 
-          name: "상품 정보 추출", 
-          status: "success", 
-          start_time: "2024-09-01T09:03:45Z",
-          end_time: "2024-09-01T09:04:30Z",
-          duration: "45s",
-          details: {
-            products_processed: 142,
-            valid_products: 89,
-            extracted_fields: ["name", "price", "rating", "reviews"]
-          },
-          logs: [
-            { time: "09:03:45", message: "상품 정보 추출 시작", level: "info" },
-            { time: "09:04:00", message: "상품 데이터 검증 중...", level: "info" },
-            { time: "09:04:30", message: "89개 유효 상품 정보 추출 완료", level: "success" }
-          ]
-        },
-        { 
-          step: 4, 
-          name: "A 단계 (보류)", 
-          status: "skipped", 
-          start_time: null,
-          end_time: null,
-          duration: "-",
-          details: {
-            reason: "기능 개발 중으로 인한 스킵"
-          },
-          logs: [
-            { time: "09:04:30", message: "A 단계는 현재 개발 중으로 스킵됨", level: "warning" }
-          ]
-        },
-        { 
-          step: 5, 
-          name: "콘텐츠 생성", 
-          status: "success", 
-          start_time: "2024-09-01T09:04:30Z",
-          end_time: "2024-09-01T09:07:50Z",
-          duration: "3m 20s",
-          details: {
-            generated_articles: 5,
-            ai_model: "GPT-4",
-            total_words: 2847
-          },
-          logs: [
-            { time: "09:04:30", message: "GPT-4 모델을 사용한 콘텐츠 생성 시작", level: "info" },
-            { time: "09:05:45", message: "첫 번째 글 생성 완료 (567 단어)", level: "info" },
-            { time: "09:07:50", message: "총 5개 글 생성 완료", level: "success" }
-          ]
-        },
-        { 
-          step: 6, 
-          name: "블로그 업로드", 
-          status: "success", 
-          start_time: "2024-09-01T09:07:50Z",
-          end_time: "2024-09-01T09:08:20Z",
-          duration: "1m 10s",
-          details: {
-            uploaded_posts: 5,
-            blog_platform: "티스토리",
-            published_status: "published"
-          },
-          logs: [
-            { time: "09:07:50", message: "티스토리 블로그 업로드 시작", level: "info" },
-            { time: "09:08:10", message: "5개 포스트 업로드 완료", level: "success" },
-            { time: "09:08:20", message: "모든 포스트 발행 완료", level: "success" }
-          ]
-        }
-      ]
-    }
-  };
+  const { data, isLoading } = queryResult;
+  const record = data?.data;
+  const [selectedJob, setSelectedJob] = useState<string | null>(null);
 
-  useEffect(() => {
-    // 화면정의서용 - 하드코딩된 데이터 로드
-    setTimeout(() => {
-      const data = mockData[id || "1"];
-      if (data) {
-        setRecord(data);
-      }
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
-      case "failed":
-        return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
-      case "running":
-        return <SyncOutlined spin style={{ color: "#1890ff" }} />;
-      case "skipped":
-        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
-      default:
-        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
-    }
-  };
-
-  const getStatusTag = (status: string) => {
-    const statusConfig = {
-      completed: { color: "success", text: "완료" },
-      failed: { color: "error", text: "실패" },
-      running: { color: "processing", text: "실행중" },
-      pending: { color: "default", text: "대기중" }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  const formatDateTime = (dateString: string | null) => {
+  const formatDateTime = (dateString?: string) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleString("ko-KR");
   };
 
-  const renderStepDetails = (step: any) => {
-    if (!step.details) return null;
+  const getStatusIcon = (isEnabled: boolean) => {
+    return isEnabled ?
+      <CheckCircleOutlined style={{ color: "#52c41a" }} /> :
+      <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
+  };
 
+  // 워크플로우가 자동 실행 가능한지 판단하는 함수
+  const isAutomaticWorkflow = (schedules: any[]) => {
+    return schedules.some(schedule => schedule.type === 'auto' && schedule.enabled);
+  };
+
+  // 워크플로우 자동 여부 태그 반환
+  const getWorkflowModeTag = (schedules: any[]) => {
+    const hasAutoSchedule = isAutomaticWorkflow(schedules);
     return (
-      <Card size="small" style={{ marginTop: 8 }}>
-        <Descriptions size="small" column={2}>
-          {Object.entries(step.details).map(([key, value]) => (
-            <Descriptions.Item key={key} label={key}>
-              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-            </Descriptions.Item>
-          ))}
-        </Descriptions>
-      </Card>
+      <Tag
+        color={hasAutoSchedule ? 'processing' : 'default'}
+        icon={hasAutoSchedule ? <ClockCircleOutlined /> : <PlayCircleOutlined />}
+      >
+        {hasAutoSchedule ? '자동' : '수동'}
+      </Tag>
     );
   };
 
-  const renderStepLogs = (logs: any[]) => {
+  const renderTaskDetails = (task: any, jobType: string) => {
     return (
-      <Card size="small" title="실행 로그" style={{ marginTop: 8 }}>
-        <Timeline>
-          {logs.map((log, index) => (
-            <Timeline.Item 
-              key={index}
-              color={log.level === 'success' ? 'green' : log.level === 'warning' ? 'orange' : 'blue'}
-            >
-              <Text code>{log.time}</Text> {log.message}
-            </Timeline.Item>
-          ))}
-        </Timeline>
+      <Card size="small" title="Task 상세보기" style={{ marginTop: 16 }}>
+        <Descriptions size="small" column={1} bordered>
+          <Descriptions.Item label="Task ID">
+            <Text code>{task.id}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Job 타입">
+            <Tag color="blue">{jobType}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="파라미터">
+            <pre style={{
+              background: "#f5f5f5",
+              padding: "8px",
+              borderRadius: "4px",
+              fontSize: "12px",
+              margin: 0
+            }}>
+              {JSON.stringify(task.parameters, null, 2)}
+            </pre>
+          </Descriptions.Item>
+        </Descriptions>
       </Card>
     );
   };
 
   return (
-    <Show isLoading={loading}>
-      {/* 기본 정보 */}
-      <Card style={{ marginBottom: 16 }}>
-        <Descriptions
-          title="실행 정보"
-          bordered
-          column={2}
-          size="middle"
-        >
-          <Descriptions.Item label="스케줄러명" span={2}>
-            <TextField value={record?.scheduler_name} />
-          </Descriptions.Item>
+    <Show
+      isLoading={isLoading}
+      title="워크플로우 상세"
+      canEdit={false}
+      canDelete={false}
+    >
+      {record && (
+        <div>
+          {/* 워크플로우 정보 */}
+          <Card style={{ marginBottom: 16 }}>
+            <Descriptions
+              title="워크플로우 정보"
+              bordered
+              column={2}
+              size="middle"
+            >
+              <Descriptions.Item label="워크플로우명" span={2}>
+                <TextField value={record.name} />
+              </Descriptions.Item>
 
-          <Descriptions.Item label="실행 상태">
-            {getStatusTag(record?.status)}
-          </Descriptions.Item>
+              <Descriptions.Item label="설명" span={2}>
+                <TextField value={record.description || "설명이 없습니다."} />
+              </Descriptions.Item>
 
-          <Descriptions.Item label="총 소요시간">
-            <TextField value={record?.total_duration} />
-          </Descriptions.Item>
+              <Descriptions.Item label="상태">
+                <Tag
+                  color={getWorkflowStatusColor(record.isEnabled)}
+                  icon={record.isEnabled ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                >
+                  {getWorkflowStatusText(record.isEnabled)}
+                </Tag>
+              </Descriptions.Item>
 
-          <Descriptions.Item label="실행 시작">
-            {formatDateTime(record?.execution_date)}
-          </Descriptions.Item>
+              <Descriptions.Item label="워크플로우 자동 여부">
+                {getWorkflowModeTag(record.schedules)}
+              </Descriptions.Item>
 
-          <Descriptions.Item label="실행 완료">
-            {formatDateTime(record?.completion_date)}
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
+              <Descriptions.Item label="생성자">
+                <TextField value={record.createdBy} />
+              </Descriptions.Item>
 
-      {/* 단계별 진행 상황 */}
-      <Card title="단계별 실행 상황" style={{ marginBottom: 16 }}>
-        <Steps 
-          direction="vertical" 
-          current={record?.current_step - 1}
-          style={{ marginBottom: 24 }}
-        >
-          {record?.steps?.map((step: any, index: number) => (
-            <Step
-              key={step.step}
-              title={
-                <Space>
-                  <span>{step.name}</span>
-                  {getStatusIcon(step.status)}
-                  <Button 
-                    type="link" 
-                    size="small"
-                    onClick={() => setSelectedStep(selectedStep === step.step ? null : step.step)}
-                  >
-                    {selectedStep === step.step ? "접기" : "상세보기"}
-                  </Button>
-                </Space>
-              }
-              description={
-                <div>
-                  <Space>
-                    <Text type="secondary">소요시간: {step.duration}</Text>
-                    <Text type="secondary">
-                      {step.start_time && `시작: ${formatDateTime(step.start_time)}`}
-                    </Text>
-                  </Space>
-                  
-                  {selectedStep === step.step && (
-                    <div style={{ marginTop: 16 }}>
-                      {step.status === "skipped" && (
-                        <Alert 
-                          message="스킵됨" 
-                          description={step.details?.reason} 
-                          type="warning" 
-                          showIcon 
-                          style={{ marginBottom: 16 }}
-                        />
+              <Descriptions.Item label="생성일시">
+                <DateField
+                  value={record.createdAt}
+                  format="YYYY-MM-DD HH:mm:ss"
+                />
+              </Descriptions.Item>
+
+              <Descriptions.Item label="수정자">
+                <TextField value={record.updatedBy || "-"} />
+              </Descriptions.Item>
+
+              <Descriptions.Item label="수정일시">
+                {record.updatedAt ? (
+                  <DateField
+                    value={record.updatedAt}
+                    format="YYYY-MM-DD HH:mm:ss"
+                  />
+                ) : (
+                  <Text type="secondary">-</Text>
+                )}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="워크플로우 설정" span={2}>
+                <pre style={{
+                  background: "#f5f5f5",
+                  padding: "12px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  margin: 0
+                }}>
+                  {JSON.stringify(record.config, null, 2)}
+                </pre>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+
+          {/* 스케줄 정보 */}
+          <Card title="스케줄 정보" style={{ marginBottom: 16 }}>
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              {record.schedules.map((schedule, index) => (
+                <Card
+                  key={index}
+                  size="small"
+                  style={{
+                    backgroundColor: schedule.enabled ? '#f6ffed' : '#fafafa',
+                    border: schedule.enabled ? '1px solid #b7eb8f' : '1px solid #d9d9d9'
+                  }}
+                >
+                  <Descriptions size="small" column={2} bordered>
+                    <Descriptions.Item label="상태">
+                      <Tag color={schedule.enabled ? 'success' : 'default'}>
+                        {schedule.enabled ? '활성' : '비활성'}
+                      </Tag>
+                    </Descriptions.Item>
+
+                    <Descriptions.Item label="최종 실행 상태">
+                      <Tag color={
+                        schedule.lastExecutionStatus === 'success' ? 'success' :
+                        schedule.lastExecutionStatus === 'failed' ? 'error' :
+                        schedule.lastExecutionStatus === 'running' ? 'processing' : 'default'
+                      }>
+                        {schedule.lastExecutionStatus === 'success' ? '성공' :
+                         schedule.lastExecutionStatus === 'failed' ? '실패' :
+                         schedule.lastExecutionStatus === 'running' ? '실행중' : '대기중'}
+                      </Tag>
+                    </Descriptions.Item>
+
+                    <Descriptions.Item label="설명" span={2}>
+                      <Text>{schedule.description}</Text>
+                    </Descriptions.Item>
+
+                    <Descriptions.Item label="최종 실행 일시">
+                      <Text>{formatDateTime(schedule.lastExecutionDate)}</Text>
+                    </Descriptions.Item>
+
+                    <Descriptions.Item label="생성일시">
+                      <Text>{formatDateTime(schedule.createdAt)}</Text>
+                    </Descriptions.Item>
+
+                    {schedule.cronExpression && (
+                      <Descriptions.Item label="크론 표현식" span={2}>
+                        <Text code>{schedule.cronExpression}</Text>
+                      </Descriptions.Item>
+                    )}
+                  </Descriptions>
+                </Card>
+              ))}
+
+              {record.schedules.length === 0 && (
+                <Alert
+                  message="등록된 스케줄이 없습니다"
+                  description="이 워크플로우에는 스케줄이 설정되어 있지 않습니다."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </Space>
+          </Card>
+
+          {/* Job별 실행 구성 */}
+          <Card title="Job별 실행 구성" style={{ marginBottom: 16 }}>
+            <Steps
+              direction="vertical"
+              current={-1}
+              style={{ marginBottom: 24 }}
+            >
+              {record.config.job.map((job, index) => (
+                <Steps.Step
+                  key={job.id}
+                  title={
+                    <Space>
+                      <span>{job.id}</span>
+                      <Tag color="blue">{job.type}</Tag>
+                      {getStatusIcon(record.isEnabled)}
+                    </Space>
+                  }
+                  description={
+                    <div>
+                      <Descriptions size="small" column={2} style={{ marginBottom: 8 }}>
+                        <Descriptions.Item label="Job 타입" span={2}>
+                          {job.type}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Task 개수">
+                          {job.task.length}개
+                        </Descriptions.Item>
+                        <Descriptions.Item label="상태">
+                          <Tag color={record.isEnabled ? "success" : "default"}>
+                            {record.isEnabled ? "활성" : "비활성"}
+                          </Tag>
+                        </Descriptions.Item>
+                      </Descriptions>
+
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
+                      >
+                        {selectedJob === job.id ? "접기" : "상세보기"}
+                      </Button>
+
+                      {selectedJob === job.id && (
+                        <div>
+                          {job.task.map((task) => (
+                            <div key={task.id}>
+                              {renderTaskDetails(task, job.type)}
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      
-                      {renderStepDetails(step)}
-                      {renderStepLogs(step.logs)}
                     </div>
-                  )}
-                </div>
-              }
-              status={
-                step.status === "success" ? "finish" :
-                step.status === "failed" ? "error" :
-                step.status === "running" ? "process" : "wait"
-              }
-            />
-          ))}
-        </Steps>
-      </Card>
+                  }
+                  status={record.isEnabled ? "finish" : "wait"}
+                  icon={<SettingOutlined />}
+                />
+              ))}
+            </Steps>
+          </Card>
 
-      {/* 요약 정보 */}
-      <Card title="실행 요약">
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Alert
-            message="실행 완료"
-            description={`총 ${record?.steps?.length}개 단계 중 ${record?.steps?.filter((s: any) => s.status === 'success').length}개 단계가 성공적으로 완료되었습니다.`}
-            type="success"
-            showIcon
-          />
-          
-          <Descriptions column={3} size="small">
-            <Descriptions.Item label="성공한 단계">
-              {record?.steps?.filter((s: any) => s.status === 'success').length}개
-            </Descriptions.Item>
-            <Descriptions.Item label="실패한 단계">
-              {record?.steps?.filter((s: any) => s.status === 'failed').length}개
-            </Descriptions.Item>
-            <Descriptions.Item label="스킵된 단계">
-              {record?.steps?.filter((s: any) => s.status === 'skipped').length}개
-            </Descriptions.Item>
-          </Descriptions>
-        </Space>
-      </Card>
+          {/* 구성 요약 */}
+          <Card title="구성 요약">
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Alert
+                message="워크플로우 구성 완료"
+                description={`총 ${record.config.job.length}개의 Job과 ${record.config.job.reduce((sum, job) => sum + job.task.length, 0)}개의 Task로 구성되어 있습니다.`}
+                type={record.isEnabled ? "success" : "info"}
+                showIcon
+              />
+
+              <Descriptions column={3} size="small">
+                <Descriptions.Item label="총 Job 수">
+                  {record.config.job.length}개
+                </Descriptions.Item>
+                <Descriptions.Item label="총 Task 수">
+                  {record.config.job.reduce((sum, job) => sum + job.task.length, 0)}개
+                </Descriptions.Item>
+                <Descriptions.Item label="워크플로우 상태">
+                  {record.isEnabled ? "활성화됨" : "비활성화됨"}
+                </Descriptions.Item>
+              </Descriptions>
+            </Space>
+          </Card>
+        </div>
+      )}
     </Show>
   );
 };
