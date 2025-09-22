@@ -19,6 +19,7 @@ import routerBindings, {
 import dataProvider from "@refinedev/simple-rest";
 import { mockDataProvider } from "./providers/mockProvider";
 import { workflowProvider } from "./providers/workflowProvider";
+import { workflowHistoryProvider } from "./providers/workflowHistoryProvider";
 import { App as AntdApp } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { authProvider } from "./providers/authProvider";
@@ -65,6 +66,7 @@ function App() {
                 dataProvider={{
                   default: mockDataProvider,
                   workflows_list: workflowProvider,
+                  workflows_history: workflowHistoryProvider,
                 }}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
@@ -86,6 +88,7 @@ function App() {
                     show: "/workflows-history/show/:id",
                     meta: {
                       canDelete: false,
+                      dataProviderName: "workflows_history",
                     },
                   },
                   {

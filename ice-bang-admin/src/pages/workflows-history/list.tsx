@@ -2,10 +2,11 @@
 import {
   List,
   ShowButton,
+  useTable,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { useGo } from "@refinedev/core";
-import { Space, Table, Tag, Steps, Button, Tooltip } from "antd";
+import { Table, Tag } from "antd";
 import { 
   CheckCircleOutlined, 
   CloseCircleOutlined, 
@@ -14,94 +15,37 @@ import {
   EyeOutlined 
 } from "@ant-design/icons";
 
-const { Step } = Steps;
+// 백엔드 WorkflowHistoryDTO와 매칭되는 타입 정의
+interface WorkflowHistoryDTO {
+  id: string; // BigInteger는 문자열로 처리
+  workflowId: string;
+  traceId: string;
+  startedAt: string; // LocalDateTime은 ISO 문자열로 처리
+  finishedAt: string | null;
+  createdBy: string | null; // null 가능
+  triggerType: string | null; // null 가능
+  runNumber: string | null; // null 가능
+  status: "completed" | "failed" | "running" | "pending";
+}
 
 export const WorkflowsHistoryList = () => {
   const go = useGo();
 
-  // 하드코딩된 워크플로 이력 데이터
-  const hardcodedData = [
-    {
-      id: 1,
-      workflow_name: "네이버 블로그 포스팅#1",
-      execution_date: "2024-09-01T09:00:00Z",
-      completion_date: "2024-09-01T09:08:00Z",
-      creator_id: "user123",
-      total_steps: 6,
-      current_step: 6,
-      status: "completed",
-      steps: [
-        { step: 1, name: "네이버 트렌드 크롤링", status: "success", duration: "2m 15s" },
-        { step: 2, name: "싸다구 몰 검색", status: "success", duration: "1m 30s" },
-        { step: 3, name: "상품 정보 추출", status: "success", duration: "45s" },
-        { step: 4, name: "A 단계 (보류)", status: "skipped", duration: "-" },
-        { step: 5, name: "콘텐츠 생성", status: "success", duration: "3m 20s" },
-        { step: 6, name: "블로그 업로드", status: "success", duration: "1m 10s" },
-      ]
-    },
-    {
-      id: 2,
-      workflow_name: "티스토리 블로그 포스팅#2",
-      execution_date: "2024-09-01T14:30:00Z",
-      completion_date: null,
-      creator_id: "user456",
-      total_steps: 6,
-      current_step: 3,
-      status: "failed",
-      steps: [
-        { step: 1, name: "네이버 트렌드 크롤링", status: "success", duration: "2m 05s" },
-        { step: 2, name: "싸다구 몰 검색", status: "success", duration: "1m 45s" },
-        { step: 3, name: "상품 정보 추출", status: "failed", duration: "30s" },
-        { step: 4, name: "A 단계 (보류)", status: "pending", duration: "-" },
-        { step: 5, name: "콘텐츠 생성", status: "pending", duration: "-" },
-        { step: 6, name: "블로그 업로드", status: "pending", duration: "-" },
-      ]
-    },
-    {
-      id: 3,
-      workflow_name: "네이버 블로그 포스팅#3",
-      execution_date: "2024-09-01T08:15:00Z",
-      completion_date: null,
-      creator_id: "user789",
-      total_steps: 6,
-      current_step: 5,
-      status: "running",
-      steps: [
-        { step: 1, name: "네이버 트렌드 크롤링", status: "success", duration: "1m 50s" },
-        { step: 2, name: "싸다구 몰 검색", status: "success", duration: "2m 10s" },
-        { step: 3, name: "상품 정보 추출", status: "success", duration: "55s" },
-        { step: 4, name: "A 단계 (보류)", status: "skipped", duration: "-" },
-        { step: 5, name: "콘텐츠 생성", status: "running", duration: "진행중..." },
-        { step: 6, name: "블로그 업로드", status: "pending", duration: "-" },
-      ]
-    }
-  ];
-
-  // 테이블 props 시뮬레이션
-  const tableProps = {
-    dataSource: hardcodedData,
-    loading: false,
+  // Refine의 useTable 훅을 사용하여 백엔드 API 연동
+  const { tableProps } = useTable<WorkflowHistoryDTO>({
+    resource: "workflows_history", // 🔥 여기가 문제! App.tsx의 리소스 이름과 일치해야 함
     pagination: {
-      current: 1,
       pageSize: 10,
-      total: hardcodedData.length,
     },
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
-      case "failed":
-        return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
-      case "running":
-        return <SyncOutlined spin style={{ color: "#1890ff" }} />;
-      case "skipped":
-        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
-      default:
-        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
-    }
-  };
+    sorters: {
+      initial: [
+        {
+          field: "startedAt",
+          order: "desc",
+        },
+      ],
+    },
+  });
 
   const getStatusTag = (status: string) => {
     const statusConfig = {
@@ -117,43 +61,86 @@ export const WorkflowsHistoryList = () => {
 
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleString("ko-KR");
+    return new Date(dateString).toLocaleString("ko-KR", {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTriggerTypeTag = (triggerType: string) => {
+    const triggerConfig = {
+      scheduled: { color: "blue", text: "예약실행" },
+      manual: { color: "green", text: "수동실행" },
+      api: { color: "orange", text: "API호출" },
+      webhook: { color: "purple", text: "웹훅" }
+    };
+    
+    const config = triggerConfig[triggerType as keyof typeof triggerConfig] || 
+                   { color: "default", text: triggerType };
+    return <Tag color={config.color}>{config.text}</Tag>;
   };
 
   return (
-    <List
-      title="워크플로 실행 이력"
-    >
-      <Table {...tableProps} rowKey="id" scroll={{ x: 1200 }}>
+    <List title="워크플로우 실행 이력">
+      <Table 
+        {...tableProps} 
+        rowKey="id" 
+        scroll={{ x: 1000 }}
+        size="middle"
+      >
         
         <Table.Column
-          dataIndex="workflow_name"
-          title="워크플로명"
-          width={200}
+          dataIndex="traceId"
+          title="추적 ID"
+          width={150}
           fixed="left"
-          render={(name: string) => (
-            <div style={{ fontWeight: "500" }}>{name}</div>
+          render={(traceId: string) => (
+            <div style={{ fontFamily: "monospace", fontSize: "12px" }}>
+              {traceId}
+            </div>
           )}
         />
         
         <Table.Column
-          dataIndex="execution_date"
-          title="실행 시간"
-          width={150}
+          dataIndex="runNumber"
+          title="실행 번호"
+          width={100}
+          render={(runNumber: string | null) => 
+            runNumber ? <Tag color="cyan">#{runNumber}</Tag> : "-"
+          }
+        />
+        
+        <Table.Column
+          dataIndex="startedAt"
+          title="시작 시간"
+          width={160}
           render={(date: string) => formatDateTime(date)}
         />
         
         <Table.Column
-          dataIndex="completion_date"
+          dataIndex="finishedAt"
           title="완료 시간"
-          width={150}
+          width={160}
           render={(date: string | null) => formatDateTime(date)}
         />
         
         <Table.Column
-          dataIndex="creator_id"
-          title="생성자 ID"
+          dataIndex="createdBy"
+          title="실행자"
           width={120}
+          render={(createdBy: string | null) => createdBy || "-"}
+        />
+        
+        <Table.Column
+          dataIndex="triggerType"
+          title="트리거"
+          width={120}
+          render={(triggerType: string | null) => 
+            triggerType ? getTriggerTypeTag(triggerType) : "-"
+          }
         />
         
         <Table.Column
@@ -168,14 +155,12 @@ export const WorkflowsHistoryList = () => {
           dataIndex="actions"
           width={100}
           fixed="right"
-          render={(_, record: BaseRecord) => (
+          render={(_, record: WorkflowHistoryDTO) => (
             <ShowButton 
               hideText 
               size="small" 
               recordItemId={record.id}
-              onClick={() => {
-                go({ to: `/workflows-history/show/${record.id}` });
-              }}
+              icon={<EyeOutlined />}
             />
           )}
         />
