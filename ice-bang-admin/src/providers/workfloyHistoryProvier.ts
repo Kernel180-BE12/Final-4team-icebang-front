@@ -24,7 +24,41 @@ export const workflowHistoryProvider: DataProvider = {
     deleteMany: async () => { throw new Error("DeleteMany operation not supported"); },
     updateMany: async () => { throw new Error("UpdateMany operation not supported"); },
     createMany: async () => { throw new Error("CreateMany operation not supported"); },
-    custom: async () => { throw new Error("Custom method not implemented"); },
+    custom: async ({ url, method, query, payload }) => {
+        let fullUrl = `${API_URL}${url}`;
+
+        // query 파라미터가 있으면 URL에 추가
+        if (query) {
+            const params = new URLSearchParams();
+            Object.entries(query).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    params.append(key, String(value));
+                }
+            });
+            if (params.toString()) {
+                fullUrl += `?${params.toString()}`;
+            }
+        }
+
+        const options: RequestInit = {
+            method: method?.toUpperCase() || 'GET',
+            credentials: 'include',
+        };
+
+        // payload가 있으면 헤더와 body에 추가
+        if (payload && (method?.toUpperCase() === 'POST' || method?.toUpperCase() === 'PUT')) {
+            options.headers = {
+                'Content-Type': 'application/json',
+            };
+            options.body = JSON.stringify(payload);
+        }
+
+        const response = await request<any>(fullUrl, options);
+
+        return {
+            data: response,
+        };
+    },
    getList: async ({ pagination, filters, sorters }) => {
       const { current = 1, pageSize = 10 } = pagination || {};
         const params = new URLSearchParams({
