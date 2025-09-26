@@ -60,7 +60,12 @@ export const WorkflowsHistoryShow = () => {
     setTaskLogsLoading(prev => ({ ...prev, [key]: true }));
 
     try {
-      const response = await dataProvider("workflows_history").custom({
+      const workflowHistoryProvider = dataProvider("workflows_history");
+      if (!workflowHistoryProvider?.custom) {
+        throw new Error('Custom method not available');
+      }
+
+      const response = await workflowHistoryProvider.custom({
         url: `/v0/workflow-runs/logs`,
         method: "get",
         query: {
