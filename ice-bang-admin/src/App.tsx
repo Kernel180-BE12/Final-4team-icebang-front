@@ -45,7 +45,8 @@ import {
 } from "./pages/user";
 import{
   WorkflowList,
-  WorkflowShow
+  WorkflowShow,
+  WorkflowCreate
 } from "./pages/workflows-list";
 import { ForgotPassword } from "./pages/forgotPassword";
 import { Login } from "./pages/login";
@@ -54,6 +55,9 @@ import {TeamOutlined} from "@ant-design/icons";
 import { WorkflowsHistoryList } from "./pages/workflows-history";
 import { WorkflowsHistoryShow } from "./pages/workflows-history";
 import { MyPage } from "./pages/my-page";
+
+// 전역 스타일 import
+import "./styles/global.css";
 
 function App() {
   return (
@@ -94,6 +98,7 @@ function App() {
                   {
                     name: "workflows_list",
                     list: "/workflows-list",
+                    create: "/workflows-list/create",
                     show: "/workflows-list/show/:id",
 
                     meta: {
@@ -177,6 +182,7 @@ function App() {
                     </Route>
                     <Route path="/workflows-list">
                       <Route index element={<WorkflowList />} />
+                      <Route path="create" element={<WorkflowCreate />} />
                       <Route path="show/:id" element={<WorkflowShow />} />
 
                     </Route>

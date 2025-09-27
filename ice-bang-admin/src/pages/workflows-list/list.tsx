@@ -1,8 +1,8 @@
 // src/pages/scheduler-history/list.tsx
-import { List, ShowButton, useTable } from "@refinedev/antd";
+import { List, ShowButton, CreateButton, useTable } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { CrudFilter, useApiUrl } from "@refinedev/core";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { Space, Table, Tag, Tooltip, Button, Card, Form, Row, Col, Input, Select } from "antd";
 import { 
   CheckCircleOutlined, 
@@ -110,7 +110,17 @@ export const WorkflowList = () => {
   };
 
   return (
-    <List title="워크플로우 리스트">
+    <List 
+      title="워크플로우 리스트"
+      headerButtons={
+        <CreateButton 
+          type="primary" 
+          icon={<PlusOutlined />}
+        >
+          새 워크플로우
+        </CreateButton>
+      }
+    >
       {/* 필터링 영역 */}
       <Card style={{ marginBottom: 16 }}>
         <Form
