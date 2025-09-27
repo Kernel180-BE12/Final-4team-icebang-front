@@ -49,7 +49,7 @@ export const WorkflowsHistoryShow = () => {
 
   // 태스크별 로그 호출 함수
   const fetchTaskLogs = async (taskRun: any) => {
-    const taskId = taskRun.taskId || taskRun.id;
+    const taskId = taskRun.id;
     const key = `task-${taskId}`;
 
     // 이미 로딩중이거나 데이터가 있으면 중복 호출 방지
@@ -143,7 +143,7 @@ export const WorkflowsHistoryShow = () => {
   const renderTaskLogs = (taskRun: any) => {
     if (!taskRun) return null;
 
-    const taskId = taskRun.taskId || taskRun.id;
+    const taskId = taskRun.id;
     const key = `task-${taskId}`;
     const taskLogs = taskLogsData[key] || [];
     const isLoading = taskLogsLoading[key] || false;
