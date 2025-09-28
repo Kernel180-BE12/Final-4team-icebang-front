@@ -17,24 +17,27 @@ const mockWorkflowData: IWorkflowBackendDto[] = [
         createdAt: "2024-09-18T10:00:00Z",
         updatedAt: "2024-09-18T15:30:00Z",
         updatedBy: "admin",
+        defaultConfig: "{\"keyword_search\": {\"tag\": \"naver\"}, \"blog_publish\": {\"tag\": \"naver_blog\"}}",
         schedules: [
             {
-                type: "auto",
+                id: 1,
                 cronExpression: "0 9 * * *",
-                description: "매일 오전 9시 실행",
-                enabled: true,
-                lastExecutionStatus: "success",
-                lastExecutionDate: "2024-09-18T09:00:00Z",
+                isActive: true,
+                lastRunStatus: "success",
+                lastRunAt: "2024-09-18T09:00:00Z",
+                scheduleText: "매일 오전 9시 실행",
                 createdAt: "2024-09-18T10:00:00Z"
-            },
+            }
+        ],
+        jobs: [
             {
-                type: "auto",
-                cronExpression: "0 18 * * *",
-                description: "매일 오후 6시 실행",
-                enabled: true,
-                lastExecutionStatus: "running",
-                lastExecutionDate: "2024-09-18T18:00:00Z",
-                createdAt: "2024-09-18T10:00:00Z"
+                workflow_id: 1,
+                job_name: "블로그 포스팅",
+                job_description: "네이버 트렌드 기반 블로그 포스팅 작업",
+                job_enabled: true,
+                job_id: 1,
+                job_execution_order: 1,
+                tasks: "[{\"task_id\": 1, \"task_name\": \"트렌드 수집 태스크\", \"task_type\": \"API\", \"task_parameters\": {\"endpoint\": \"/trends\", \"method\": \"GET\"}, \"execution_order\": 1}]"
             }
         ],
         config: {
@@ -319,18 +322,34 @@ const mockWorkflowData: IWorkflowBackendDto[] = [
 ];
 
 // 백엔드 데이터를 프론트엔드 형식으로 변환하는 유틸리티 함수
-const transformWorkflowData = (backendData: IWorkflowBackendDto): IWorkflow => ({
-    id: backendData.id,
-    name: backendData.name,
-    description: backendData.description,
-    createdBy: backendData.createdBy,
-    isEnabled: backendData.enabled, // enabled → isEnabled 변환
-    createdAt: backendData.createdAt,
-    updatedAt: backendData.updatedAt,
-    updatedBy: backendData.updatedBy,
-    schedules: backendData.schedules,
-    config: backendData.config,
-});
+const transformWorkflowData = (backendData: IWorkflowBackendDto): IWorkflow => {
+    let parsedConfig;
+    try {
+        parsedConfig = JSON.parse(backendData.defaultConfig);
+    } catch (error) {
+        console.warn("defaultConfig 파싱 실패:", error);
+        parsedConfig = {};
+    }
+
+    // 목데이터에서 해당 워크플로우의 config 찾기
+    const mockData = mockWorkflowData.find(mock => mock.id === backendData.id);
+    const mockConfig = mockData?.config || { job: [] };
+
+    return {
+        id: backendData.id,
+        name: backendData.name,
+        description: backendData.description,
+        createdBy: backendData.createdBy,
+        isEnabled: backendData.enabled, // enabled → isEnabled 변환
+        createdAt: backendData.createdAt,
+        updatedAt: backendData.updatedAt,
+        updatedBy: backendData.updatedBy,
+        schedules: backendData.schedules,
+        jobs: backendData.jobs || [], // jobs 필드 추가
+        defaultConfig: parsedConfig, // JSON 파싱된 설정
+        config: mockConfig, // 목데이터용 Job 설정
+    };
+};
 
 // 공통 API 호출 함수
 const fetchWorkflow = async (endpoint: string): Promise<IWorkflowListResponse | IWorkflowResponse> => {
@@ -392,28 +411,30 @@ export const workflowProvider: DataProvider = {
         }
     },
 
-    // 단일 항목 조회 (목데이터 사용)
+    // 단일 항목 조회 (실제 API 호출)
     getOne: async ({ resource, id }) => {
         console.log("🔍 getOne 호출됨 - resource:", resource, "id:", id);
 
-        if (resource !== "workflows_list") {
+        if (resource !== "workflows_list" && resource !== "workflows") {
             throw new Error(`Resource ${resource} not found`);
         }
 
-        // 목데이터를 사용하여 시뮬레이션
-        await new Promise(resolve => setTimeout(resolve, 200)); // 네트워크 지연 시뮬레이션
+        try {
+            const result = await fetchWorkflow(`/v0/workflows/${id}/detail`) as IWorkflowResponse;
 
-        const workflowData = mockWorkflowData.find(item => item.id === Number(id));
+            if (!result.data) {
+                throw new Error(`Workflow ${id} not found`);
+            }
 
-        if (!workflowData) {
-            throw new Error(`Workflow ${id} not found`);
+            console.log("✅ API에서 받은 워크플로우 데이터:", result.data);
+
+            return {
+                data: transformWorkflowData(result.data) as unknown as any,
+            };
+        } catch (error) {
+            console.error("💥 getOne 오류:", error);
+            throw error;
         }
-
-        console.log("✅ 목데이터에서 찾은 워크플로우:", workflowData);
-
-        return {
-            data: transformWorkflowData(workflowData) as unknown as any,
-        };
     },
 
     // 여러 항목 조회 (useMany용) - 원래 API 호출

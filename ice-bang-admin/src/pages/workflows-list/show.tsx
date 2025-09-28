@@ -13,11 +13,13 @@ import {
   SettingOutlined,
   PlayCircleOutlined,
   ToolOutlined,
-  CodeOutlined
+  CodeOutlined,
+  ArrowRightOutlined
 } from "@ant-design/icons";
 import {
   IWorkflow,
-  IJob,
+  IBackendJob,
+  IBackendTask,
   getWorkflowStatusText,
   getWorkflowStatusColor,
   getScheduleTypeText,
@@ -49,7 +51,8 @@ export const WorkflowShow = () => {
 
   // 워크플로우가 자동 실행 가능한지 판단하는 함수
   const isAutomaticWorkflow = (schedules: any[]) => {
-    return schedules.some(schedule => schedule.type === 'auto' && schedule.enabled);
+    if (!schedules || schedules.length === 0) return false;
+    return schedules.some(schedule => schedule.isActive);
   };
 
   // 워크플로우 자동 여부 태그 반환
@@ -65,29 +68,76 @@ export const WorkflowShow = () => {
     );
   };
 
-  const renderTaskDetails = (task: any, jobType: string) => {
+  const renderTaskFlow = (tasks: IBackendTask[]) => {
+    const sortedTasks = [...tasks].sort((a, b) => a.execution_order - b.execution_order);
+
     return (
-      <Card size="small" title="Task 상세보기" style={{ marginTop: 16 }}>
-        <Descriptions size="small" column={1} bordered>
-          <Descriptions.Item label="Task ID">
-            <Text code>{task.id}</Text>
-          </Descriptions.Item>
-          <Descriptions.Item label="Job 타입">
-            <Tag color="blue">{jobType}</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="파라미터">
-            <pre style={{
-              background: "#f5f5f5",
-              padding: "8px",
-              borderRadius: "4px",
-              fontSize: "12px",
-              margin: 0
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginTop: '16px',
+        padding: '16px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        overflow: 'auto'
+      }}>
+        {sortedTasks.map((task, index) => (
+          <div key={task.task_id} style={{ display: 'flex', alignItems: 'center' }}>
+            {/* Task 카드 */}
+            <div style={{
+              backgroundColor: '#fff',
+              border: '2px solid #1890ff',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              minWidth: '160px',
+              textAlign: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              position: 'relative'
             }}>
-              {JSON.stringify(task.parameters, null, 2)}
-            </pre>
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
+              {/* 실행 순서 배지 */}
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                left: '-8px',
+                backgroundColor: '#52c41a',
+                color: 'white',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}>
+                {task.execution_order}
+              </div>
+
+              {/* Task 정보 */}
+              <div style={{ marginBottom: '8px' }}>
+                <Text strong style={{ fontSize: '14px', display: 'block' }}>
+                  {task.task_name}
+                </Text>
+              </div>
+              <Tag color="blue" size="small">
+                {task.task_type}
+              </Tag>
+            </div>
+
+            {/* 화살표 (마지막 Task가 아닌 경우) */}
+            {index < sortedTasks.length - 1 && (
+              <ArrowRightOutlined
+                style={{
+                  fontSize: '20px',
+                  color: '#1890ff',
+                  margin: '0 8px'
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
     );
   };
 
@@ -161,9 +211,11 @@ export const WorkflowShow = () => {
                   padding: "12px",
                   borderRadius: "6px",
                   fontSize: "12px",
-                  margin: 0
+                  margin: 0,
+                  maxHeight: "200px",
+                  overflow: "auto"
                 }}>
-                  {JSON.stringify(record.config, null, 2)}
+                  {JSON.stringify(record.defaultConfig, null, 2)}
                 </pre>
               </Descriptions.Item>
             </Descriptions>
@@ -172,51 +224,50 @@ export const WorkflowShow = () => {
           {/* 스케줄 정보 */}
           <Card title="스케줄 정보" style={{ marginBottom: 16 }}>
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              {record.schedules.map((schedule, index) => (
+              {record.schedules.map((schedule) => (
                 <Card
-                  key={index}
+                  key={schedule.id}
                   size="small"
                   style={{
-                    backgroundColor: schedule.enabled ? '#f6ffed' : '#fafafa',
-                    border: schedule.enabled ? '1px solid #b7eb8f' : '1px solid #d9d9d9'
+                    backgroundColor: schedule.isActive ? '#f6ffed' : '#fafafa',
+                    border: schedule.isActive ? '1px solid #b7eb8f' : '1px solid #d9d9d9'
                   }}
                 >
                   <Descriptions size="small" column={2} bordered>
                     <Descriptions.Item label="상태">
-                      <Tag color={schedule.enabled ? 'success' : 'default'}>
-                        {schedule.enabled ? '활성' : '비활성'}
+                      <Tag color={schedule.isActive ? 'success' : 'default'}>
+                        {schedule.isActive ? '활성' : '비활성'}
                       </Tag>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="최종 실행 상태">
                       <Tag color={
-                        schedule.lastExecutionStatus === 'success' ? 'success' :
-                        schedule.lastExecutionStatus === 'failed' ? 'error' :
-                        schedule.lastExecutionStatus === 'running' ? 'processing' : 'default'
+                        schedule.lastRunStatus === 'success' ? 'success' :
+                        schedule.lastRunStatus === 'failed' ? 'error' :
+                        schedule.lastRunStatus === 'running' ? 'processing' : 'default'
                       }>
-                        {schedule.lastExecutionStatus === 'success' ? '성공' :
-                         schedule.lastExecutionStatus === 'failed' ? '실패' :
-                         schedule.lastExecutionStatus === 'running' ? '실행중' : '대기중'}
+                        {schedule.lastRunStatus === 'success' ? '성공' :
+                         schedule.lastRunStatus === 'failed' ? '실패' :
+                         schedule.lastRunStatus === 'running' ? '실행중' :
+                         schedule.lastRunStatus === null ? '대기중' : '대기중'}
                       </Tag>
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="설명" span={2}>
-                      <Text>{schedule.description}</Text>
+                    <Descriptions.Item label="스케줄 설명" span={2}>
+                      <Text>{schedule.scheduleText}</Text>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="최종 실행 일시">
-                      <Text>{formatDateTime(schedule.lastExecutionDate)}</Text>
+                      <Text>{formatDateTime(schedule.lastRunAt)}</Text>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="생성일시">
                       <Text>{formatDateTime(schedule.createdAt)}</Text>
                     </Descriptions.Item>
 
-                    {schedule.cronExpression && (
-                      <Descriptions.Item label="크론 표현식" span={2}>
-                        <Text code>{schedule.cronExpression}</Text>
-                      </Descriptions.Item>
-                    )}
+                    <Descriptions.Item label="크론 표현식" span={2}>
+                      <Text code>{schedule.cronExpression}</Text>
+                    </Descriptions.Item>
                   </Descriptions>
                 </Card>
               ))}
@@ -239,55 +290,62 @@ export const WorkflowShow = () => {
               current={-1}
               style={{ marginBottom: 24 }}
             >
-              {record.config.job.map((job, index) => (
-                <Steps.Step
-                  key={job.id}
-                  title={
-                    <Space>
-                      <span>{job.id}</span>
-                      <Tag color="blue">{job.type}</Tag>
-                      {getStatusIcon(record.isEnabled)}
-                    </Space>
-                  }
-                  description={
-                    <div>
-                      <Descriptions size="small" column={2} style={{ marginBottom: 8 }}>
-                        <Descriptions.Item label="Job 타입" span={2}>
-                          {job.type}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Task 개수">
-                          {job.task.length}개
-                        </Descriptions.Item>
-                        <Descriptions.Item label="상태">
-                          <Tag color={record.isEnabled ? "success" : "default"}>
-                            {record.isEnabled ? "활성" : "비활성"}
-                          </Tag>
-                        </Descriptions.Item>
-                      </Descriptions>
+              {record.jobs?.map((job, index) => {
+                const tasks: IBackendTask[] = job.tasks ? JSON.parse(job.tasks) : [];
+                return (
+                  <Steps.Step
+                    key={job.job_id}
+                    title={
+                      <Space>
+                        <span>{job.job_name}</span>
+                        <Tag color="blue">Job #{job.job_id}</Tag>
+                        <Tag color={job.job_enabled ? "success" : "default"}>
+                          {job.job_enabled ? "활성" : "비활성"}
+                        </Tag>
+                      </Space>
+                    }
+                    description={
+                      <div>
+                        <Descriptions size="small" column={2} style={{ marginBottom: 8 }}>
+                          <Descriptions.Item label="Job 설명" span={2}>
+                            {job.job_description}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Task 개수">
+                            {tasks.length}개
+                          </Descriptions.Item>
+                          <Descriptions.Item label="실행 순서">
+                            <Tag color="orange">{job.job_execution_order}</Tag>
+                          </Descriptions.Item>
+                          <Descriptions.Item label="상태">
+                            <Tag color={job.job_enabled ? "success" : "default"}>
+                              {job.job_enabled ? "활성" : "비활성"}
+                            </Tag>
+                          </Descriptions.Item>
+                          <Descriptions.Item label="워크플로우 ID">
+                            {job.workflow_id}
+                          </Descriptions.Item>
+                        </Descriptions>
 
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-                      >
-                        {selectedJob === job.id ? "접기" : "상세보기"}
-                      </Button>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => setSelectedJob(selectedJob === job.job_id.toString() ? null : job.job_id.toString())}
+                        >
+                          {selectedJob === job.job_id.toString() ? "접기" : "Task 플로우 보기"}
+                        </Button>
 
-                      {selectedJob === job.id && (
-                        <div>
-                          {job.task.map((task) => (
-                            <div key={task.id}>
-                              {renderTaskDetails(task, job.type)}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  }
-                  status={record.isEnabled ? "finish" : "wait"}
-                  icon={<SettingOutlined />}
-                />
-              ))}
+                        {selectedJob === job.job_id.toString() && (
+                          <div>
+                            {renderTaskFlow(tasks)}
+                          </div>
+                        )}
+                      </div>
+                    }
+                    status={job.job_enabled ? "finish" : "wait"}
+                    icon={<SettingOutlined />}
+                  />
+                );
+              })}
             </Steps>
           </Card>
 
@@ -296,17 +354,23 @@ export const WorkflowShow = () => {
             <Space direction="vertical" style={{ width: "100%" }}>
               <Alert
                 message="워크플로우 구성 완료"
-                description={`총 ${record.config.job.length}개의 Job과 ${record.config.job.reduce((sum, job) => sum + job.task.length, 0)}개의 Task로 구성되어 있습니다.`}
+                description={`총 ${record.jobs?.length || 0}개의 Job과 ${record.jobs?.reduce((sum, job) => {
+                  const tasks: IBackendTask[] = job.tasks ? JSON.parse(job.tasks) : [];
+                  return sum + tasks.length;
+                }, 0) || 0}개의 Task로 구성되어 있습니다.`}
                 type={record.isEnabled ? "success" : "info"}
                 showIcon
               />
 
               <Descriptions column={3} size="small">
                 <Descriptions.Item label="총 Job 수">
-                  {record.config.job.length}개
+                  {record.jobs?.length || 0}개
                 </Descriptions.Item>
                 <Descriptions.Item label="총 Task 수">
-                  {record.config.job.reduce((sum, job) => sum + job.task.length, 0)}개
+                  {record.jobs?.reduce((sum, job) => {
+                    const tasks: IBackendTask[] = job.tasks ? JSON.parse(job.tasks) : [];
+                    return sum + tasks.length;
+                  }, 0) || 0}개
                 </Descriptions.Item>
                 <Descriptions.Item label="워크플로우 상태">
                   {record.isEnabled ? "활성화됨" : "비활성화됨"}
