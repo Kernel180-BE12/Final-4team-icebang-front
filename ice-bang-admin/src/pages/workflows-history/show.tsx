@@ -1,8 +1,8 @@
 // src/pages/workflows-history/show.tsx
 import { Show, TextField } from "@refinedev/antd";
 import { useShow, useCustom, useDataProvider, useGo } from "@refinedev/core";
-import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button, Tabs, Spin, Empty, Input, Select, Table, Collapse, Badge, Modal } from "antd";
-import { useState, useEffect, useCallback } from "react";
+import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button, Tabs, Spin, Empty, Input, Select, Table, Collapse, Badge, Modal, Progress } from "antd";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -12,7 +12,9 @@ import {
   SearchOutlined,
   FilterOutlined,
   EyeOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  PlayCircleOutlined,
+  PauseCircleOutlined
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -36,6 +38,11 @@ export const WorkflowsHistoryShow = () => {
   const [ioData, setIoData] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedIOData, setSelectedIOData] = useState<any>(null);
+  const [isAutoRefresh, setIsAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(10);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const dataProvider = useDataProvider();
 
@@ -125,6 +132,66 @@ export const WorkflowsHistoryShow = () => {
       fetchTaskIOData();
     }
   }, [record?.jobRuns, ioDataLoading, ioData.length, fetchTaskIOData]);
+
+  // Refresh all data
+  const refreshAllData = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        queryResult.refetch(),
+        refetchLogs(),
+        record?.jobRuns ? fetchTaskIOData() : Promise.resolve()
+      ]);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('새로고침 실패:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryResult, refetchLogs, fetchTaskIOData, record?.jobRuns]);
+
+  // Auto-refresh functionality
+  const startAutoRefresh = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    if (!isAutoRefresh || refreshInterval <= 0) {
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      refreshAllData();
+    }, refreshInterval * 1000);
+  }, [isAutoRefresh, refreshInterval, refreshAllData]);
+
+  const stopAutoRefresh = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Auto-refresh setup and cleanup
+  useEffect(() => {
+    if (isAutoRefresh) {
+      startAutoRefresh();
+    } else {
+      stopAutoRefresh();
+    }
+
+    return () => {
+      stopAutoRefresh();
+    };
+  }, [isAutoRefresh, refreshInterval, startAutoRefresh, stopAutoRefresh]);
+
+  // Auto-stop when workflow is completed (not running)
+  useEffect(() => {
+    const workflowStatus = record?.workflowRun?.status?.toLowerCase();
+    if (workflowStatus && ['success', 'failed', 'completed'].includes(workflowStatus)) {
+      setIsAutoRefresh(false);
+    }
+  }, [record?.workflowRun?.status]);
 
   // 태스크별 로그 호출 함수
   const fetchTaskLogs = async (taskRun: any) => {
@@ -1039,7 +1106,64 @@ export const WorkflowsHistoryShow = () => {
   ];
 
   return (
-    <Show isLoading={isLoading}>
+    <Show
+      isLoading={isLoading}
+      headerButtons={
+        <Space direction="vertical" size="small" style={{ alignItems: 'flex-end' }}>
+          <Space>
+            <Button
+              type={isAutoRefresh ? "primary" : "default"}
+              icon={isAutoRefresh ? <PauseCircleOutlined /> : <PlayCircleOutlined />}
+              onClick={() => setIsAutoRefresh(!isAutoRefresh)}
+              loading={isRefreshing}
+            >
+              {isAutoRefresh ? "자동 새로고침 중지" : "자동 새로고침 시작"}
+            </Button>
+
+            <Select
+              value={refreshInterval}
+              onChange={setRefreshInterval}
+              style={{ width: 120 }}
+              disabled={!isAutoRefresh}
+              options={[
+                { label: "5초", value: 5 },
+                { label: "10초", value: 10 },
+                { label: "30초", value: 30 },
+                { label: "1분", value: 60 },
+              ]}
+            />
+
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={refreshAllData}
+              loading={isRefreshing}
+            >
+              수동 새로고침
+            </Button>
+          </Space>
+
+          {/* Auto-refresh status indicator */}
+          {isAutoRefresh && (
+            <Space size="small" style={{ fontSize: '12px', color: '#666' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <SyncOutlined spin style={{ color: '#52c41a' }} />
+                <span>자동 새로고침 활성화 ({refreshInterval}초 간격)</span>
+                {isRefreshing && (
+                  <span style={{ color: '#1890ff' }}>새로고침 중...</span>
+                )}
+              </div>
+            </Space>
+          )}
+
+          {/* Last updated timestamp */}
+          {lastUpdated && (
+            <div style={{ fontSize: '11px', color: '#999' }}>
+              마지막 업데이트: {lastUpdated.toLocaleString('ko-KR')}
+            </div>
+          )}
+        </Space>
+      }
+    >
       <Tabs
         defaultActiveKey="execution-summary"
         items={tabItems}
