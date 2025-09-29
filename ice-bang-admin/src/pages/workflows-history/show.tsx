@@ -337,226 +337,224 @@ export const WorkflowsHistoryShow = () => {
 
   const statusCounts = getStatusCounts();
 
-  // 실행 정보 탭 콘텐츠 (최신 OUTPUT만 표시)
-  const renderExecutionInfo = () => {
+  // 실행 요약 탭 콘텐츠
+  const renderExecutionSummary = () => {
     const latestOutput = getLatestOutputData();
 
     return (
-    <>
-      {/* 실행 정보 */}
-      <Card style={{ marginBottom: 16 }}>
-        <Descriptions
-          title="실행 정보"
-          bordered
-          column={2}
-          size="middle"
-        >
-          <Descriptions.Item label="워크플로명" span={2}>
-            <TextField value={record?.workflowRun?.workflowName} />
-          </Descriptions.Item>
+      <>
+        {/* 요약 정보 */}
+        <Card title="실행 요약" style={{ marginBottom: 16 }}>
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Alert
+              message={statusCounts.failed > 0 ? "실행 실패" : "실행 완료"}
+              description={`총 ${statusCounts.total}개 태스크 중 ${statusCounts.success}개 성공, ${statusCounts.failed}개 실패, ${statusCounts.skipped}개 스킵`}
+              type={statusCounts.failed > 0 ? "error" : "success"}
+              showIcon
+            />
 
-          <Descriptions.Item label="설명" span={2}>
-            <TextField value={record?.workflowRun?.workflowDescription} />
-          </Descriptions.Item>
-
-          <Descriptions.Item label="추적 ID" span={2}>
-            <Text code>{record?.traceId}</Text>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="시작 시간">
-            {formatDateTime(record?.workflowRun?.startedAt)}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="완료 시간">
-            {formatDateTime(record?.workflowRun?.finishedAt)}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="실행 번호">
-            <TextField value={record?.workflowRun?.runNumber || "-"} />
-          </Descriptions.Item>
-
-          <Descriptions.Item label="상태">
-            {getStatusTag(record?.workflowRun?.status)}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="트리거 유형">
-            <TextField value={record?.workflowRun?.triggerType || "-"} />
-          </Descriptions.Item>
-
-          <Descriptions.Item label="생성자 ID">
-            <TextField value={record?.workflowRun?.createdBy || "-"} />
-          </Descriptions.Item>
-
-          <Descriptions.Item label="총 실행 시간" span={2}>
-            {formatDuration(record?.workflowRun?.durationMs)}
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
-
-      {/* Job별 실행 상황 */}
-      <Card title="Job별 실행 상황" style={{ marginBottom: 16 }}>
-        {record?.jobRuns?.map((jobRun: any) => (
-          <Card 
-            key={jobRun.id}
-            size="small" 
-            title={
-              <Space>
-                <span>{jobRun.jobName}</span>
-                {getStatusIcon(jobRun.status)}
-                {getStatusTag(jobRun.status)}
-              </Space>
-            }
-            style={{ marginBottom: 16 }}
-          >
-            <Descriptions size="small" column={2} style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="Job 설명" span={2}>
-                {jobRun.jobDescription}
+            <Descriptions column={3} size="small">
+              <Descriptions.Item label="성공한 태스크">
+                {statusCounts.success}개
               </Descriptions.Item>
-              <Descriptions.Item label="시작 시간">
-                {formatDateTime(jobRun.startedAt)}
+              <Descriptions.Item label="실패한 태스크">
+                {statusCounts.failed}개
               </Descriptions.Item>
-              <Descriptions.Item label="완료 시간">
-                {formatDateTime(jobRun.finishedAt)}
-              </Descriptions.Item>
-              <Descriptions.Item label="실행 시간">
-                {formatDuration(jobRun.durationMs)}
-              </Descriptions.Item>
-              <Descriptions.Item label="실행 순서">
-                {jobRun.executionOrder || "-"}
+              <Descriptions.Item label="스킵된 태스크">
+                {statusCounts.skipped}개
               </Descriptions.Item>
             </Descriptions>
+          </Space>
+        </Card>
 
-            {/* Task 단계별 표시 */}
-            <Steps 
-              direction="vertical" 
-              size="small"
-            >
-              {jobRun.taskRuns?.map((taskRun: any) => (
-                <Step
-                  key={taskRun.id}
-                  title={
-                    <Space>
-                      <span>{taskRun.taskName}</span>
-                      {getStatusIcon(taskRun.status)}
-                    </Space>
-                  }
-                  description={
-                    <div>
-                      <Descriptions size="small" column={2} style={{ marginBottom: 8 }}>
-                        <Descriptions.Item label="설명" span={2}>
-                          {taskRun.taskDescription || "-"}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="타입">
-                          <Tag>{taskRun.taskType}</Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="상태">
-                          {getStatusTag(taskRun.status)}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="시작 시간">
-                          {formatDateTime(taskRun.startedAt)}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="완료 시간">
-                          {formatDateTime(taskRun.finishedAt)}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="실행 시간">
-                          {formatDuration(taskRun.durationMs)}
-                        </Descriptions.Item>
-                      </Descriptions>
+        {/* 워크플로우 기본 정보 */}
+        <Card title="워크플로우 정보" style={{ marginBottom: 16 }}>
+          <Descriptions
+            bordered
+            column={2}
+            size="middle"
+          >
+            <Descriptions.Item label="워크플로명" span={2}>
+              <TextField value={record?.workflowRun?.workflowName} />
+            </Descriptions.Item>
 
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={async () => {
-                          if (selectedStep === taskRun.id) {
-                            // 접기
-                            setSelectedStep(null);
-                          } else {
-                            // 로그 보기 - API 호출하고 펼치기
-                            setSelectedStep(taskRun.id);
-                            await fetchTaskLogs(taskRun);
-                          }
-                        }}
-                      >
-                        {selectedStep === taskRun.id ? "접기" : "로그 보기"}
-                      </Button>
-                      
-                      {selectedStep === taskRun.id && (
-                        <div>
-                          {taskRun.status?.toLowerCase() === "skipped" && (
-                            <Alert 
-                              message="스킵됨" 
-                              description="이 태스크는 스킵되었습니다" 
-                              type="warning" 
-                              showIcon 
-                              style={{ marginBottom: 16 }}
-                            />
-                          )}
-                          
-                          {renderTaskLogs(taskRun)}
-                        </div>
-                      )}
-                    </div>
-                  }
-                  status={
-                    taskRun.status?.toLowerCase() === "success" ? "finish" :
-                    taskRun.status?.toLowerCase() === "failed" ? "error" :
-                    taskRun.status?.toLowerCase() === "running" ? "process" : "wait"
-                  }
-                />
-              ))}
-            </Steps>
-          </Card>
-        ))}
-      </Card>
+            <Descriptions.Item label="설명" span={2}>
+              <TextField value={record?.workflowRun?.workflowDescription} />
+            </Descriptions.Item>
 
-      {/* 요약 정보 */}
-      <Card title="실행 요약">
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Alert
-            message={statusCounts.failed > 0 ? "실행 실패" : "실행 완료"}
-            description={`총 ${statusCounts.total}개 태스크 중 ${statusCounts.success}개 성공, ${statusCounts.failed}개 실패, ${statusCounts.skipped}개 스킵`}
-            type={statusCounts.failed > 0 ? "error" : "success"}
-            showIcon
-          />
+            <Descriptions.Item label="상태">
+              {getStatusTag(record?.workflowRun?.status)}
+            </Descriptions.Item>
 
-          <Descriptions column={3} size="small">
-            <Descriptions.Item label="성공한 태스크">
-              {statusCounts.success}개
+            <Descriptions.Item label="총 실행 시간">
+              {formatDuration(record?.workflowRun?.durationMs)}
             </Descriptions.Item>
-            <Descriptions.Item label="실패한 태스크">
-              {statusCounts.failed}개
-            </Descriptions.Item>
-            <Descriptions.Item label="스킵된 태스크">
-              {statusCounts.skipped}개
-            </Descriptions.Item>
-          </Descriptions>
-        </Space>
-      </Card>
 
-      {/* 최신 실행 결과 (OUTPUT만) */}
-      {latestOutput && (
-        <Card title="최신 실행 결과" style={{ marginTop: 16 }}>
-          <Descriptions bordered size="small" column={2}>
-            <Descriptions.Item label="데이터 타입">
-              <Tag color="blue">{latestOutput.dataType}</Tag>
+            <Descriptions.Item label="시작 시간">
+              {formatDateTime(record?.workflowRun?.startedAt)}
             </Descriptions.Item>
-            <Descriptions.Item label="데이터 크기">
-              {formatDataSize(latestOutput.dataSize)}
+
+            <Descriptions.Item label="완료 시간">
+              {formatDateTime(record?.workflowRun?.finishedAt)}
             </Descriptions.Item>
-            <Descriptions.Item label="생성 시간" span={2}>
-              {formatDateTime(latestOutput.createdAt)}
+
+            <Descriptions.Item label="실행 번호">
+              <TextField value={record?.workflowRun?.runNumber || "-"} />
             </Descriptions.Item>
-            <Descriptions.Item label="데이터 미리보기" span={2}>
-              <Card size="small" style={{ backgroundColor: '#f5f5f5' }}>
-                <Text code style={{ fontSize: '12px' }}>
-                  {formatDataPreview(latestOutput.dataValue, 200)}
-                </Text>
-              </Card>
+
+            <Descriptions.Item label="트리거 유형">
+              <TextField value={record?.workflowRun?.triggerType || "-"} />
             </Descriptions.Item>
           </Descriptions>
         </Card>
-      )}
-    </>
+
+        {/* 최신 실행 결과 (OUTPUT만) */}
+        {latestOutput && (
+          <Card title="최신 실행 결과">
+            <Descriptions bordered size="small" column={2}>
+              <Descriptions.Item label="데이터 타입">
+                <Tag color="blue">{latestOutput.dataType}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="데이터 크기">
+                {formatDataSize(latestOutput.dataSize)}
+              </Descriptions.Item>
+              <Descriptions.Item label="생성 시간" span={2}>
+                {formatDateTime(latestOutput.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="데이터 미리보기" span={2}>
+                <Card size="small" style={{ backgroundColor: '#f5f5f5' }}>
+                  <Text code style={{ fontSize: '12px' }}>
+                    {formatDataPreview(latestOutput.dataValue, 200)}
+                  </Text>
+                </Card>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        )}
+      </>
+    );
+  };
+
+  // 실행 정보 탭 콘텐츠 (상세 Job/Task 정보)
+  const renderExecutionInfo = () => {
+    return (
+      <>
+        {/* Job별 실행 상황 */}
+        <Card title="Job별 실행 상황" style={{ marginBottom: 16 }}>
+          {record?.jobRuns?.map((jobRun: any) => (
+            <Card
+              key={jobRun.id}
+              size="small"
+              title={
+                <Space>
+                  <span>{jobRun.jobName}</span>
+                  {getStatusIcon(jobRun.status)}
+                  {getStatusTag(jobRun.status)}
+                </Space>
+              }
+              style={{ marginBottom: 16 }}
+            >
+              <Descriptions size="small" column={2} style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="Job 설명" span={2}>
+                  {jobRun.jobDescription}
+                </Descriptions.Item>
+                <Descriptions.Item label="시작 시간">
+                  {formatDateTime(jobRun.startedAt)}
+                </Descriptions.Item>
+                <Descriptions.Item label="완료 시간">
+                  {formatDateTime(jobRun.finishedAt)}
+                </Descriptions.Item>
+                <Descriptions.Item label="실행 시간">
+                  {formatDuration(jobRun.durationMs)}
+                </Descriptions.Item>
+                <Descriptions.Item label="실행 순서">
+                  {jobRun.executionOrder || "-"}
+                </Descriptions.Item>
+              </Descriptions>
+
+              {/* Task 단계별 표시 */}
+              <Steps
+                direction="vertical"
+                size="small"
+              >
+                {jobRun.taskRuns?.map((taskRun: any) => (
+                  <Step
+                    key={taskRun.id}
+                    title={
+                      <Space>
+                        <span>{taskRun.taskName}</span>
+                        {getStatusIcon(taskRun.status)}
+                      </Space>
+                    }
+                    description={
+                      <div>
+                        <Descriptions size="small" column={2} style={{ marginBottom: 8 }}>
+                          <Descriptions.Item label="설명" span={2}>
+                            {taskRun.taskDescription || "-"}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="타입">
+                            <Tag>{taskRun.taskType}</Tag>
+                          </Descriptions.Item>
+                          <Descriptions.Item label="상태">
+                            {getStatusTag(taskRun.status)}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="시작 시간">
+                            {formatDateTime(taskRun.startedAt)}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="완료 시간">
+                            {formatDateTime(taskRun.finishedAt)}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="실행 시간">
+                            {formatDuration(taskRun.durationMs)}
+                          </Descriptions.Item>
+                        </Descriptions>
+
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={async () => {
+                            if (selectedStep === taskRun.id) {
+                              // 접기
+                              setSelectedStep(null);
+                            } else {
+                              // 로그 보기 - API 호출하고 펼치기
+                              setSelectedStep(taskRun.id);
+                              await fetchTaskLogs(taskRun);
+                            }
+                          }}
+                        >
+                          {selectedStep === taskRun.id ? "접기" : "로그 보기"}
+                        </Button>
+
+                        {selectedStep === taskRun.id && (
+                          <div>
+                            {taskRun.status?.toLowerCase() === "skipped" && (
+                              <Alert
+                                message="스킵됨"
+                                description="이 태스크는 스킵되었습니다"
+                                type="warning"
+                                showIcon
+                                style={{ marginBottom: 16 }}
+                              />
+                            )}
+
+                            {renderTaskLogs(taskRun)}
+                          </div>
+                        )}
+                      </div>
+                    }
+                    status={
+                      taskRun.status?.toLowerCase() === "success" ? "finish" :
+                      taskRun.status?.toLowerCase() === "failed" ? "error" :
+                      taskRun.status?.toLowerCase() === "running" ? "process" : "wait"
+                    }
+                  />
+                ))}
+              </Steps>
+            </Card>
+          ))}
+        </Card>
+      </>
     );
   };
 
@@ -864,8 +862,13 @@ export const WorkflowsHistoryShow = () => {
 
   const tabItems = [
     {
+      key: 'execution-summary',
+      label: '실행 요약',
+      children: renderExecutionSummary(),
+    },
+    {
       key: 'execution-info',
-      label: '실행 정보',
+      label: '상세 정보',
       children: renderExecutionInfo(),
     },
     {
@@ -883,7 +886,7 @@ export const WorkflowsHistoryShow = () => {
   return (
     <Show isLoading={isLoading}>
       <Tabs
-        defaultActiveKey="execution-info"
+        defaultActiveKey="execution-summary"
         items={tabItems}
       />
     </Show>
