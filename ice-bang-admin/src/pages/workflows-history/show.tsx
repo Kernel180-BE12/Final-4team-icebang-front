@@ -1,7 +1,7 @@
 // src/pages/workflows-history/show.tsx
 import { Show, TextField } from "@refinedev/antd";
 import { useShow, useCustom, useDataProvider } from "@refinedev/core";
-import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button, Tabs, Spin, Empty, Input, Select, Table, Collapse, Badge } from "antd";
+import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button, Tabs, Spin, Empty, Input, Select, Table, Collapse, Badge, Modal } from "antd";
 import { useState, useEffect, useCallback } from "react";
 import {
   CheckCircleOutlined,
@@ -33,6 +33,8 @@ export const WorkflowsHistoryShow = () => {
   const [taskLogsLoading, setTaskLogsLoading] = useState<Record<string, boolean>>({});
   const [ioDataLoading, setIoDataLoading] = useState(false);
   const [ioData, setIoData] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedIOData, setSelectedIOData] = useState<any>(null);
 
   const dataProvider = useDataProvider();
 
@@ -757,8 +759,8 @@ export const WorkflowsHistoryShow = () => {
             size="small"
             icon={<EyeOutlined />}
             onClick={() => {
-              // 데이터 상세 보기 모달이나 별도 처리
-              console.log('상세 보기:', record);
+              setSelectedIOData(record);
+              setModalVisible(true);
             }}
           >
             보기
@@ -766,25 +768,6 @@ export const WorkflowsHistoryShow = () => {
         ),
       },
     ];
-
-    const expandedRowRender = (record: any) => (
-      <Card size="small" title="데이터 상세">
-        <Text strong>데이터 내용:</Text>
-        <div style={{
-          marginTop: 8,
-          padding: 12,
-          backgroundColor: '#f5f5f5',
-          borderRadius: 6,
-          fontFamily: 'Monaco, Consolas, monospace',
-          fontSize: '12px',
-          whiteSpace: 'pre-wrap',
-          maxHeight: 300,
-          overflow: 'auto'
-        }}>
-          {record.dataValue || 'N/A'}
-        </div>
-      </Card>
-    );
 
     return (
       <div>
@@ -809,28 +792,6 @@ export const WorkflowsHistoryShow = () => {
               columns={columns}
               dataSource={ioData}
               rowKey="id"
-              expandable={{
-                expandedRowRender,
-                expandIcon: ({ expanded, onExpand, record }) =>
-                  expanded ? (
-                    <Button
-                      type="link"
-                      size="small"
-                      onClick={e => onExpand(record, e)}
-                    >
-                      접기
-                    </Button>
-                  ) : (
-                    <Button
-                      type="link"
-                      size="small"
-                      icon={<FileTextOutlined />}
-                      onClick={e => onExpand(record, e)}
-                    >
-                      펼치기
-                    </Button>
-                  ),
-              }}
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
@@ -856,6 +817,69 @@ export const WorkflowsHistoryShow = () => {
             </Empty>
           )}
         </Spin>
+
+        {/* I/O 데이터 상세보기 모달 */}
+        <Modal
+          title="I/O 데이터 상세"
+          open={modalVisible}
+          onCancel={() => {
+            setModalVisible(false);
+            setSelectedIOData(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setModalVisible(false);
+              setSelectedIOData(null);
+            }}>
+              닫기
+            </Button>
+          ]}
+          width={800}
+        >
+          {selectedIOData && (
+            <>
+              <Descriptions bordered size="small" column={2} style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="Task Run ID">
+                  {selectedIOData.taskRunId}
+                </Descriptions.Item>
+                <Descriptions.Item label="I/O 타입">
+                  <Badge
+                    color={selectedIOData.ioType === 'INPUT' ? 'green' : 'blue'}
+                    text={selectedIOData.ioType}
+                  />
+                </Descriptions.Item>
+                <Descriptions.Item label="이름">
+                  {selectedIOData.name}
+                </Descriptions.Item>
+                <Descriptions.Item label="데이터 타입">
+                  <Tag color="purple">{selectedIOData.dataType}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="데이터 크기">
+                  {formatDataSize(selectedIOData.dataSize)}
+                </Descriptions.Item>
+                <Descriptions.Item label="생성 시간">
+                  {formatDateTime(selectedIOData.createdAt)}
+                </Descriptions.Item>
+              </Descriptions>
+
+              <Card size="small" title="데이터 내용" style={{ backgroundColor: '#fafafa' }}>
+                <div style={{
+                  padding: 12,
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: 6,
+                  fontFamily: 'Monaco, Consolas, monospace',
+                  fontSize: '12px',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: 400,
+                  overflow: 'auto',
+                  border: '1px solid #d9d9d9'
+                }}>
+                  {selectedIOData.dataValue || 'N/A'}
+                </div>
+              </Card>
+            </>
+          )}
+        </Modal>
       </div>
     );
   };
