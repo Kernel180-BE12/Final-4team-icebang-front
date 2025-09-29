@@ -1,6 +1,6 @@
 // src/pages/workflows-history/show.tsx
 import { Show, TextField } from "@refinedev/antd";
-import { useShow, useCustom, useDataProvider } from "@refinedev/core";
+import { useShow, useCustom, useDataProvider, useGo } from "@refinedev/core";
 import { Typography, Tag, Descriptions, Card, Steps, Timeline, Alert, Space, Button, Tabs, Spin, Empty, Input, Select, Table, Collapse, Badge, Modal } from "antd";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -19,6 +19,7 @@ const { Text } = Typography;
 const { Step } = Steps;
 
 export const WorkflowsHistoryShow = () => {
+  const go = useGo();
   const { queryResult } = useShow({
     resource: "workflows_history",
   });
@@ -229,6 +230,107 @@ export const WorkflowsHistoryShow = () => {
     return dataValue.substring(0, maxLength) + '...';
   };
 
+  // JSON 데이터에서 data 속성 추출
+  const extractDataFromJson = (dataValue: string) => {
+    if (!dataValue) return dataValue;
+
+    try {
+      const parsed = JSON.parse(dataValue);
+      if (parsed && typeof parsed === 'object' && 'data' in parsed) {
+        return JSON.stringify(parsed.data, null, 2);
+      }
+    } catch (error) {
+      // JSON 파싱 실패 시 원본 반환
+    }
+
+    return dataValue;
+  };
+
+  // URL 감지 및 하이퍼링크 렌더링
+  const renderDataWithLinks = (dataValue: string, isPreview = false) => {
+    if (!dataValue) return 'N/A';
+
+    // data 속성이 있으면 추출
+    const extractedData = extractDataFromJson(dataValue);
+
+    // 미리보기인 경우 길이 제한
+    const displayValue = isPreview ? formatDataPreview(extractedData, 200) : extractedData;
+
+    // JSON 내의 URL도 감지할 수 있도록 더 포괄적인 정규식 패턴
+    const urlRegex = /(https?:\/\/[^\s\",\}]+)/g;
+
+    // URL이 포함되어 있는지 확인
+    const urlMatches = displayValue.match(urlRegex);
+
+    if (!urlMatches) {
+      // URL이 없으면 일반 텍스트로 표시
+      return (
+        <span style={{ fontSize: '12px', fontFamily: 'Monaco, Consolas, monospace', whiteSpace: 'pre-wrap' }}>
+          {displayValue}
+        </span>
+      );
+    }
+
+    // URL이 있으면 링크로 변환
+    let lastIndex = 0;
+    const elements = [];
+
+    urlMatches.forEach((url, index) => {
+      const urlStartIndex = displayValue.indexOf(url, lastIndex);
+
+      // URL 이전의 텍스트
+      if (urlStartIndex > lastIndex) {
+        elements.push(
+          <span
+            key={`text-${index}`}
+            style={{ fontSize: '12px', fontFamily: 'Monaco, Consolas, monospace' }}
+          >
+            {displayValue.substring(lastIndex, urlStartIndex)}
+          </span>
+        );
+      }
+
+      // URL 링크
+      elements.push(
+        <a
+          key={`url-${index}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: '#1890ff',
+            textDecoration: 'underline',
+            wordBreak: 'break-all',
+            fontSize: '12px',
+            fontFamily: 'Monaco, Consolas, monospace'
+          }}
+        >
+          {url}
+        </a>
+      );
+
+      lastIndex = urlStartIndex + url.length;
+    });
+
+    // 마지막 URL 이후의 텍스트
+    if (lastIndex < displayValue.length) {
+      elements.push(
+        <span
+          key="text-end"
+          style={{ fontSize: '12px', fontFamily: 'Monaco, Consolas, monospace' }}
+        >
+          {displayValue.substring(lastIndex)}
+        </span>
+      );
+    }
+
+    return (
+      <div style={{ whiteSpace: 'pre-wrap' }}>
+        {elements}
+      </div>
+    );
+  };
+
   // 최신 OUTPUT 데이터 찾기
   const getLatestOutputData = () => {
     const outputData = ioData.filter(item => item.ioType === 'OUTPUT');
@@ -348,6 +450,31 @@ export const WorkflowsHistoryShow = () => {
         {/* 요약 정보 */}
         <Card title="실행 요약" style={{ marginBottom: 16 }}>
           <Space direction="vertical" style={{ width: "100%" }}>
+            {/* 워크플로우명 */}
+            <div style={{ marginBottom: 12 }}>
+              <Text
+                strong
+                style={{
+                  fontSize: '16px',
+                  color: '#1890ff',
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  if (record?.workflowRun?.workflowId) {
+                    go({
+                      to: {
+                        resource: "workflows_list",
+                        action: "show",
+                        id: record.workflowRun.workflowId,
+                      },
+                    });
+                  }
+                }}
+              >
+                {record?.workflowRun?.workflowName || "워크플로우"}
+              </Text>
+            </div>
+
             <Alert
               message={statusCounts.failed > 0 ? "실행 실패" : "실행 완료"}
               description={`총 ${statusCounts.total}개 태스크 중 ${statusCounts.success}개 성공, ${statusCounts.failed}개 실패, ${statusCounts.skipped}개 스킵`}
@@ -369,6 +496,36 @@ export const WorkflowsHistoryShow = () => {
           </Space>
         </Card>
 
+        {/* 최신 실행 결과 (OUTPUT만) */}
+        {latestOutput && (
+          <Card title="최신 실행 결과" style={{ marginBottom: 16 }}>
+            <Descriptions bordered size="small" column={2}>
+              <Descriptions.Item label="데이터 타입">
+                <Tag color="blue">{latestOutput.dataType}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="데이터 크기">
+                {formatDataSize(latestOutput.dataSize)}
+              </Descriptions.Item>
+              <Descriptions.Item label="생성 시간" span={2}>
+                {formatDateTime(latestOutput.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="데이터 미리보기" span={2}>
+                <Card size="small" style={{ backgroundColor: '#f5f5f5' }}>
+                  {renderDataWithLinks(latestOutput.dataValue, true)}
+                </Card>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        )}
+
+      </>
+    );
+  };
+
+  // 실행 정보 탭 콘텐츠 (상세 Job/Task 정보)
+  const renderExecutionInfo = () => {
+    return (
+      <>
         {/* 워크플로우 기본 정보 */}
         <Card title="워크플로우 정보" style={{ marginBottom: 16 }}>
           <Descriptions
@@ -382,6 +539,10 @@ export const WorkflowsHistoryShow = () => {
 
             <Descriptions.Item label="설명" span={2}>
               <TextField value={record?.workflowRun?.workflowDescription} />
+            </Descriptions.Item>
+
+            <Descriptions.Item label="추적 ID" span={2}>
+              <Text code>{record?.traceId}</Text>
             </Descriptions.Item>
 
             <Descriptions.Item label="상태">
@@ -407,40 +568,13 @@ export const WorkflowsHistoryShow = () => {
             <Descriptions.Item label="트리거 유형">
               <TextField value={record?.workflowRun?.triggerType || "-"} />
             </Descriptions.Item>
+
+            <Descriptions.Item label="생성자 ID">
+              <TextField value={record?.workflowRun?.createdBy || "-"} />
+            </Descriptions.Item>
           </Descriptions>
         </Card>
 
-        {/* 최신 실행 결과 (OUTPUT만) */}
-        {latestOutput && (
-          <Card title="최신 실행 결과">
-            <Descriptions bordered size="small" column={2}>
-              <Descriptions.Item label="데이터 타입">
-                <Tag color="blue">{latestOutput.dataType}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="데이터 크기">
-                {formatDataSize(latestOutput.dataSize)}
-              </Descriptions.Item>
-              <Descriptions.Item label="생성 시간" span={2}>
-                {formatDateTime(latestOutput.createdAt)}
-              </Descriptions.Item>
-              <Descriptions.Item label="데이터 미리보기" span={2}>
-                <Card size="small" style={{ backgroundColor: '#f5f5f5' }}>
-                  <Text code style={{ fontSize: '12px' }}>
-                    {formatDataPreview(latestOutput.dataValue, 200)}
-                  </Text>
-                </Card>
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        )}
-      </>
-    );
-  };
-
-  // 실행 정보 탭 콘텐츠 (상세 Job/Task 정보)
-  const renderExecutionInfo = () => {
-    return (
-      <>
         {/* Job별 실행 상황 */}
         <Card title="Job별 실행 상황" style={{ marginBottom: 16 }}>
           {record?.jobRuns?.map((jobRun: any) => (
@@ -867,14 +1001,11 @@ export const WorkflowsHistoryShow = () => {
                   padding: 12,
                   backgroundColor: '#f5f5f5',
                   borderRadius: 6,
-                  fontFamily: 'Monaco, Consolas, monospace',
-                  fontSize: '12px',
-                  whiteSpace: 'pre-wrap',
                   maxHeight: 400,
                   overflow: 'auto',
                   border: '1px solid #d9d9d9'
                 }}>
-                  {selectedIOData.dataValue || 'N/A'}
+                  {renderDataWithLinks(selectedIOData.dataValue)}
                 </div>
               </Card>
             </>
