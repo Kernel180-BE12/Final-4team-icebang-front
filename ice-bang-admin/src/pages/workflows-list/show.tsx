@@ -120,7 +120,7 @@ export const WorkflowShow = () => {
                   {task.task_name}
                 </Text>
               </div>
-              <Tag color="blue" size="small">
+              <Tag color="blue" >
                 {task.task_type}
               </Tag>
             </div>
@@ -258,7 +258,7 @@ export const WorkflowShow = () => {
                     </Descriptions.Item>
 
                     <Descriptions.Item label="최종 실행 일시">
-                      <Text>{formatDateTime(schedule.lastRunAt)}</Text>
+                      <Text>{schedule.lastRunAt ? formatDateTime(schedule.lastRunAt) : '-'}</Text>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="생성일시">
